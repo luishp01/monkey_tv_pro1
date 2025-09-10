@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Películas - MonkeyTV PRO</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body { font-family: sans-serif; background-color: #1a1a2e; color: #ecf0f1; padding: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        h1 { text-align: center; color: #e74c3c; }
+        #form-container { background-color: #2c2c44; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        #form-container input, #form-container button, #form-container textarea { 
+            width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: none; 
+            background-color: #1a1a2e; color: #ecf0f1; 
+        }
+        #form-container button { background-color: #3498db; color: white; cursor: pointer; }
+        #form-container button:hover { background-color: #2980b9; }
+        
+        .search-movie-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .search-movie-container input {
+            flex-grow: 1;
+        }
+
+        #results-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 10px;
+        }
+        .result-item {
+            background-color: #2c2c44;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .result-item img {
+            width: 50px;
+            height: 75px;
+            object-fit: cover;
+            border-radius: 3px;
+            margin-right: 10px;
+        }
+        .result-item span {
+            flex-grow: 1;
+        }
+        .result-item button {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin de Películas</h1>
+        
+        <div id="form-container">
+            <h3>Buscar y Agregar Película</h3>
+            <div class="search-movie-container">
+                <input type="text" id="movie-search" placeholder="Buscar película por nombre...">
+                <button id="search-button">Buscar</button>
+            </div>
+            
+            <ul id="results-list"></ul>
+            
+            <hr style="border: 1px solid #555; margin: 20px 0;">
+            
+            <input type="hidden" id="movie-id">
+            <input type="text" id="title" placeholder="Título" required>
+            <input type="text" id="poster_url" placeholder="URL del Póster" required>
+            <input type="text" id="backdrop_url" placeholder="URL del Fondo" required>
+            <textarea id="overview" placeholder="Sinopsis" rows="4"></textarea>
+            <input type="text" id="release_date" placeholder="Fecha de Lanzamiento">
+            <input type="text" id="genres" placeholder="Géneros (separados por coma)">
+            <button id="save-movie-button">Guardar Película</button>
+        </div>
+    </div>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "TU_API_KEY", // <-- Remplaza con tu API Key de Firebase
+          authDomain: "TU_DOMINIO",
+          projectId: "TU_PROYECTO",
+          storageBucket: "TU_BUCKET",
+          messagingSenderId: "TU_SENDER_ID",
+          appId: "TU_APP_ID"
+        };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // CONFIGURACIÓN DE TMDb
+        const TMDB_API_KEY = "TU_TMDB_API_KEY"; // <-- Remplaza con tu API Key de TMDb
+        const TMDB_API_URL = "https://api.themoviedb.org/3";
+        
+        const searchInput = document.getElementById('movie-search');
+        const searchButton = document.getElementById('search-button');
+        const resultsList = document.getElementById('results-list');
+        const saveMovieButton = document.getElementById('save-movie-button');
+        
+        const movieIdInput = document.getElementById('movie-id');
+        const titleInput = document.getElementById('title');
+        const posterInput = document.getElementById('poster_url');
+        const backdropInput = document.getElementById('backdrop_url');
+        const overviewInput = document.getElementById('overview');
+        const releaseDateInput = document.getElementById('release_date');
+        const genresInput = document.getElementById('genres');
+
+        searchButton.addEventListener('click', async () => {
+            const query = searchInput.value;
+            if (query.length < 3) return;
+
+            const url = `${TMDB_API_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&language=es-MX`;
+            
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                resultsList.innerHTML = '';
+                if (data.results && data.results.length > 0) {
+                    data.results.forEach(movie => {
+                        const li = document.createElement('li');
+                        li.className = 'result-item';
+                        li.innerHTML = `
+                            <img src="https://image.tmdb.org/t/p/w92${movie.poster_path}" onerror="this.src='https://via.placeholder.com/50x75?text=No+IMG'"/>
+                            <span>${movie.title} (${movie.release_date ? movie.release_date.substring(0, 4) : 'N/A'})</span>
+                            <button data-id="${movie.id}">Seleccionar</button>
+                        `;
+                        li.querySelector('button').addEventListener('click', async () => {
+                             await fillFormWithMovieData(movie.id);
+                             resultsList.innerHTML = '';
+                        });
+                        resultsList.appendChild(li);
+                    });
+                } else {
+                    resultsList.innerHTML = '<li style="text-align: center;">No se encontraron resultados.</li>';
+                }
+            } catch (error) {
+                console.error('Error al buscar películas:', error);
+            }
+        });
+
+        async function fillFormWithMovieData(movieId) {
+            const movieUrl = `${TMDB_API_URL}/movie/${movieId}?api_key=${TMDB_API_KEY}&language=es-MX`;
+            try {
+                const response = await fetch(movieUrl);
+                const movie = await response.json();
+
+                movieIdInput.value = movie.id;
+                titleInput.value = movie.title;
+                posterInput.value = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
+                backdropInput.value = `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}`;
+                overviewInput.value = movie.overview;
+                releaseDateInput.value = movie.release_date;
+                const genreNames = movie.genres.map(g => g.name).join(', ');
+                genresInput.value = genreNames;
+            } catch (e) {
+                console.error("Error al obtener detalles de la película:", e);
+                alert("No se pudieron cargar los detalles de la película.");
+            }
+        }
+
+        saveMovieButton.addEventListener('click', async () => {
+            const newMovie = {
+                id: movieIdInput.value,
+                titulo: titleInput.value,
+                poster_url: posterInput.value,
+                backdrop_url: backdropInput.value,
+                sinopsis: overviewInput.value,
+                fecha_lanzamiento: releaseDateInput.value,
+                generos: genresInput.value.split(',').map(g => g.trim()),
+            };
+
+            if (!newMovie.titulo || !newMovie.poster_url) {
+                alert("El título y la URL del póster son obligatorios.");
+                return;
+            }
+
+            try {
+                const movieRef = doc(db, "peliculas", newMovie.id);
+                await setDoc(movieRef, newMovie);
+                alert("Película guardada con éxito.");
+                // Limpiar campos
+                movieIdInput.value = '';
+                titleInput.value = '';
+                posterInput.value = '';
+                backdropInput.value = '';
+                overviewInput.value = '';
+                releaseDateInput.value = '';
+                genresInput.value = '';
+            } catch (e) {
+                console.error("Error al agregar película:", e);
+                alert("Error al guardar la película.");
+            }
+        });
+    </script>
+</body>
+</html>
