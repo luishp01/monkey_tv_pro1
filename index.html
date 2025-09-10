@@ -7,6 +7,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-TU_CLIENTE" crossorigin="anonymous"></script>
+    
     <style>
         :root {
             --dark-bg: #1a1a2e;
@@ -385,6 +387,16 @@
         </div>
     </header>
 
+    <ins class="adsbygoogle"
+         style="display:block; text-align:center;"
+         data-ad-client="ca-pub-TU_CLIENTE"
+         data-ad-slot="TU_SLOT"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+    
     <main class="main-content">
         <input type="text" id="search-input" placeholder="Buscar canal...">
 
@@ -458,7 +470,7 @@
                 const [userCredential, channelsSnapshot, epgResponse] = await Promise.all([
                     signInAnonymously(auth),
                     getDocs(collection(db, "canales")),
-                    fetch("mexico2.xml")
+                    fetch("https://www.open-epg.com/files/mexico2.xml")
                 ]);
 
                 userId = userCredential.user.uid;
@@ -551,8 +563,9 @@
         const progressBarContainer = document.querySelector('.progress-bar-container');
         const volumeSliderContainer = document.querySelector('.volume-slider-container');
         
-        let epgData = null; // Variable para almacenar los datos del EPG
-        let allChannelsList = []; // Variable para almacenar los canales
+        let epgData = null;
+        let allChannelsList = [];
+        let currentChannels = [];
 
         function showMessageBox(message, duration = 3000) {
             const messageBox = document.getElementById('messageBox');
@@ -622,8 +635,8 @@
             allButton.addEventListener('click', () => {
                 document.querySelectorAll('.category-item').forEach(btn => btn.classList.remove('active'));
                 allButton.classList.add('active');
-                window.currentChannels = allChannelsList;
-                renderChannels(allChannelsList, window.favoritesList);
+                currentChannels = allChannelsList;
+                renderChannels(currentChannels, window.favoritesList);
             });
             categoriesDiv.appendChild(allButton);
 
@@ -634,8 +647,8 @@
                 button.addEventListener('click', () => {
                     document.querySelectorAll('.category-item').forEach(btn => btn.classList.remove('active'));
                     button.classList.add('active');
-                    window.currentChannels = allChannelsList.filter(c => c.categoria === cat);
-                    renderChannels(window.currentChannels, window.favoritesList);
+                    currentChannels = allChannelsList.filter(c => c.categoria === cat);
+                    renderChannels(currentChannels, window.favoritesList);
                 });
                 categoriesDiv.appendChild(button);
             });
@@ -749,7 +762,6 @@
             }
         });
         
-        // Sincronizar el slider de volumen con el video
         videoPlayer.addEventListener('volumechange', () => {
             volumeSlider.style.width = (videoPlayer.volume * 100) + '%';
             if (videoPlayer.muted || videoPlayer.volume === 0) {
@@ -759,7 +771,6 @@
             }
         });
         
-        // Ajustar el volumen cuando el usuario arrastra el slider
         volumeSliderContainer.addEventListener('click', (e) => {
             const containerWidth = volumeSliderContainer.clientWidth;
             const clickPosition = e.offsetX;
@@ -767,7 +778,6 @@
             videoPlayer.volume = newVolume;
         });
 
-        // Sincronizar la barra de progreso con el video
         videoPlayer.addEventListener('timeupdate', () => {
             if (videoPlayer.duration) {
                 const progress = (videoPlayer.currentTime / videoPlayer.duration) * 100;
@@ -790,7 +800,6 @@
             }
         });
         
-        // Ir a un punto del video al hacer clic en la barra de progreso
         progressBarContainer.addEventListener('click', (e) => {
             if (videoPlayer.duration) {
                 const containerWidth = progressBarContainer.clientWidth;
@@ -810,23 +819,26 @@
             }
         });
 
-        // Eventos para sincronizar los botones con el estado del video
         videoPlayer.addEventListener('play', () => {
             playPauseBtn.className = 'fas fa-pause';
         });
         videoPlayer.addEventListener('pause', () => {
             playPauseBtn.className = 'fas fa-play';
         });
-
-        // Manejo de la navegación inferior
+        
+        // Lógica de navegación mejorada
         navItems.forEach(item => {
             item.addEventListener('click', (e) => {
-                navItems.forEach(nav => nav.classList.remove('active'));
-                item.classList.add('active');
                 const view = item.dataset.view;
                 if (view === 'favorites') {
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    item.classList.add('active');
                     filterFavorites();
                 } else if (view === 'all') {
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    item.classList.add('active');
+                    document.querySelectorAll('.category-item').forEach(btn => btn.classList.remove('active'));
+                    document.querySelector('.category-item').classList.add('active');
                     renderChannels(allChannelsList, window.favoritesList);
                 }
             });
@@ -839,7 +851,7 @@
                 channel.nombre.toLowerCase().includes(query) || 
                 (channel.categoria && channel.categoria.toLowerCase().includes(query))
             );
-            window.currentChannels = filteredChannels;
+            currentChannels = filteredChannels;
             renderChannels(filteredChannels, window.favoritesList);
         });
     </script>
