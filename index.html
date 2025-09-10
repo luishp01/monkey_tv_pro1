@@ -63,11 +63,18 @@
             font-weight: bold;
         }
 
-        .fa-search {
-            font-size: 1.2em;
-            color: var(--text-muted);
+        /* Estilos para el campo de búsqueda */
+        #search-input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 10px;
+            border-radius: 20px;
+            border: 1px solid #555;
+            background-color: #2c2c44;
+            color: #ecf0f1;
+            box-sizing: border-box;
         }
-
+        
         .video-container {
             position: relative;
             width: 100%;
@@ -329,17 +336,6 @@
             margin-bottom: 5px;
         }
 
-        /* Estilos para el campo de búsqueda */
-        #search-input {
-            width: calc(100% - 20px);
-            padding: 10px;
-            margin: 10px;
-            border-radius: 20px;
-            border: 1px solid #555;
-            background-color: #2c2c44;
-            color: #ecf0f1;
-            box-sizing: border-box;
-        }
         #loading-message {
             text-align: center;
             margin-top: 20px;
@@ -354,6 +350,8 @@
             <span class="app-title">MonkeyTV PRO</span>
             <i class="fas fa-search"></i>
         </div>
+        <input type="text" id="search-input" placeholder="Buscar canal...">
+
         <div class="video-container">
             <video id="videoPlayer" class="video-player" autoplay preload="auto"></video>
             
@@ -398,8 +396,6 @@
     </script>
     
     <main class="main-content">
-        <input type="text" id="search-input" placeholder="Buscar canal...">
-
         <div class="categories-section">
             <div class="category-item active" data-category="TODOS">TODOS</div>
         </div>
@@ -502,12 +498,15 @@
             onSnapshot(favoritesRef, (snapshot) => {
                 window.favoritesList = snapshot.docs.map(doc => doc.data());
                 
-                const activeCategory = document.querySelector('.category-item.active');
-                if (activeCategory.dataset.category === 'TODOS') {
-                    renderChannels(allChannelsList, window.favoritesList);
-                } else {
-                    const filteredChannels = allChannelsList.filter(c => c.categoria === activeCategory.dataset.category);
-                    renderChannels(filteredChannels, window.favoritesList);
+                // Asegurar que la vista actual se actualice
+                const activeCategoryBtn = document.querySelector('.category-item.active');
+                if (activeCategoryBtn) {
+                    if (activeCategoryBtn.dataset.category === 'TODOS') {
+                        renderChannels(allChannelsList, window.favoritesList);
+                    } else {
+                        const filteredChannels = allChannelsList.filter(c => c.categoria === activeCategoryBtn.dataset.category);
+                        renderChannels(filteredChannels, window.favoritesList);
+                    }
                 }
             }, (error) => {
                 console.error("Error al obtener los favoritos:", error);
@@ -577,7 +576,7 @@
             allButton.addEventListener('click', () => {
                 document.querySelectorAll('.category-item').forEach(btn => btn.classList.remove('active'));
                 allButton.classList.add('active');
-                renderChannels(allChannelsList, window.favoritesList);
+                renderChannels(window.allChannelsList, window.favoritesList);
             });
             categoriesDiv.appendChild(allButton);
 
@@ -589,7 +588,7 @@
                 button.addEventListener('click', () => {
                     document.querySelectorAll('.category-item').forEach(btn => btn.classList.remove('active'));
                     button.classList.add('active');
-                    const filteredChannels = allChannelsList.filter(c => c.categoria === cat);
+                    const filteredChannels = window.allChannelsList.filter(c => c.categoria === cat);
                     renderChannels(filteredChannels, window.favoritesList);
                 });
                 categoriesDiv.appendChild(button);
@@ -708,7 +707,7 @@
                     if (allCategoryButton) {
                         allCategoryButton.classList.add('active');
                     }
-                    renderChannels(allChannelsList, window.favoritesList);
+                    renderChannels(window.allChannelsList, window.favoritesList);
                 }
             });
         });
@@ -716,7 +715,7 @@
         // Lógica para la barra de búsqueda
         searchInput.addEventListener('input', () => {
             const query = searchInput.value.toLowerCase();
-            const filteredChannels = allChannelsList.filter(channel => 
+            const filteredChannels = window.allChannelsList.filter(channel => 
                 channel.nombre.toLowerCase().includes(query) || 
                 (channel.categoria && channel.categoria.toLowerCase().includes(query))
             );
