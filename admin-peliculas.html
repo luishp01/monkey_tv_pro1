@@ -10,13 +10,13 @@
         .container { max-width: 800px; margin: auto; }
         h1 { text-align: center; color: #e74c3c; }
         #form-container { background-color: #2c2c44; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
-        #form-container input, #form-container button, #form-container textarea { 
-            width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: none; 
-            background-color: #1a1a2e; color: #ecf0f1; 
+        #form-container input, #form-container button, #form-container textarea {
+            width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: none;
+            background-color: #1a1a2e; color: #ecf0f1; box-sizing: border-box;
         }
         #form-container button { background-color: #3498db; color: white; cursor: pointer; }
         #form-container button:hover { background-color: #2980b9; }
-        
+
         .search-movie-container {
             display: flex;
             gap: 10px;
@@ -32,7 +32,7 @@
             margin-top: 10px;
         }
         .result-item {
-            background-color: #2c2c44;
+            background-color: #1a1a2e;
             padding: 10px;
             border-radius: 5px;
             margin-bottom: 5px;
@@ -64,6 +64,10 @@
             padding: 20px;
             border-radius: 10px;
         }
+        #movie-list-container input {
+             width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: none;
+            background-color: #1a1a2e; color: #ecf0f1; box-sizing: border-box;
+        }
         .movie-list-item {
             display: flex;
             justify-content: space-between;
@@ -89,46 +93,72 @@
         .movie-list-item .delete-btn {
             background-color: #e74c3c;
         }
+
+        /* Estilos del formulario de inicio de sesión */
+        #login-form-peliculas {
+            background-color: #2c2c44;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 400px;
+            margin: 50px auto;
+            text-align: center;
+        }
+        #login-form-peliculas h2 { margin-bottom: 20px; }
+        #login-form-peliculas input {
+            width: 90%; padding: 10px; margin-bottom: 15px; border-radius: 5px;
+            border: 1px solid #555; background-color: #1a1a2e; color: #ecf0f1;
+        }
+        #login-form-peliculas button {
+            width: 90%; padding: 12px; background-color: #e74c3c;
+            color: white; border: none; border-radius: 5px; cursor: pointer;
+        }
+        #login-form-peliculas button:hover { background-color: #c0392b; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Admin de Películas</h1>
-        
-        <div id="form-container">
-            <h3>Buscar y Agregar Película</h3>
-            <div class="search-movie-container">
-                <input type="text" id="movie-search" placeholder="Buscar película por nombre...">
-                <button id="search-button">Buscar</button>
-            </div>
-            
-            <ul id="results-list"></ul>
-            
-            <hr style="border: 1px solid #555; margin: 20px 0;">
-            
-            <input type="hidden" id="movie-id">
-            <input type="text" id="title" placeholder="Título" required>
-            <input type="text" id="poster_url" placeholder="URL del Póster" required>
-            <input type="text" id="backdrop_url" placeholder="URL del Fondo" required>
-            <textarea id="overview" placeholder="Sinopsis" rows="4"></textarea>
-            <input type="text" id="release_date" placeholder="Fecha de Lanzamiento">
-            <input type="text" id="genres" placeholder="Géneros (separados por coma)">
-            <input type="text" id="video_url" placeholder="URL del Video (opcional)">
-            <button id="save-movie-button">Guardar Película</button>
+
+        <div id="login-form-peliculas">
+            <h2>Admin de Películas - Iniciar Sesión</h2>
+            <input type="email" id="login-email-peliculas" placeholder="Correo Electrónico" required>
+            <input type="password" id="login-password-peliculas" placeholder="Contraseña" required>
+            <button id="login-button-peliculas">Entrar</button>
         </div>
 
-        <div id="movie-list-container">
-            <h3>Películas Existentes</h3>
-            <input type="text" id="movie-list-search" placeholder="Buscar en películas agregadas...">
-            <div id="movie-list">
+        <div id="admin-container-peliculas" style="display: none;">
+            <h1>Admin de Películas</h1>
+
+            <div id="form-container">
+                <h3>Buscar y Agregar Película</h3>
+                <div class="search-movie-container">
+                    <input type="text" id="movie-search" placeholder="Buscar película por nombre...">
+                    <button id="search-button">Buscar</button>
                 </div>
+                <ul id="results-list"></ul>
+                <hr style="border: 1px solid #555; margin: 20px 0;">
+                <input type="hidden" id="movie-id">
+                <input type="text" id="title" placeholder="Título" required>
+                <input type="text" id="poster_url" placeholder="URL del Póster" required>
+                <input type="text" id="backdrop_url" placeholder="URL del Fondo" required>
+                <textarea id="overview" placeholder="Sinopsis" rows="4"></textarea>
+                <input type="text" id="release_date" placeholder="Fecha de Lanzamiento">
+                <input type="text" id="genres" placeholder="Géneros (separados por coma)">
+                <input type="text" id="video_url" placeholder="URL del Video (opcional)">
+                <button id="save-movie-button">Guardar Película</button>
+            </div>
+
+            <div id="movie-list-container">
+                <h3>Películas Existentes</h3>
+                <input type="text" id="movie-list-search" placeholder="Buscar en películas agregadas...">
+                <div id="movie-list"></div>
+            </div>
         </div>
     </div>
-    
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
         // CONFIGURACIÓN DE FIREBASE
         const firebaseConfig = {
@@ -145,16 +175,22 @@
         const auth = getAuth(app);
 
         // CONFIGURACIÓN DE TMDb
-        const TMDB_API_KEY = "6b08760aef7b20713371d73d461c9c57"; 
+        const TMDB_API_KEY = "6b08760aef7b20713371d73d461c9c57";
         const TMDB_API_URL = "https://api.themoviedb.org/3";
-        
+
+        // --- Elementos del formulario de login ---
+        const loginForm = document.getElementById('login-form-peliculas');
+        const loginEmail = document.getElementById('login-email-peliculas');
+        const loginPassword = document.getElementById('login-password-peliculas');
+        const loginButton = document.getElementById('login-button-peliculas');
+        const adminContainer = document.getElementById('admin-container-peliculas');
+
         const searchInput = document.getElementById('movie-search');
         const searchButton = document.getElementById('search-button');
         const resultsList = document.getElementById('results-list');
         const saveMovieButton = document.getElementById('save-movie-button');
         const movieList = document.getElementById('movie-list');
         const movieListSearchInput = document.getElementById('movie-list-search');
-
         const movieIdInput = document.getElementById('movie-id');
         const titleInput = document.getElementById('title');
         const posterInput = document.getElementById('poster_url');
@@ -166,15 +202,26 @@
 
         let allMovies = [];
 
-        async function authenticateUser() {
+        // --- Lógica de inicio de sesión ---
+        loginButton.addEventListener('click', async () => {
+            const email = loginEmail.value;
+            const password = loginPassword.value;
+
+            if (!email || !password) {
+                alert("Por favor, ingresa correo y contraseña.");
+                return;
+            }
+
             try {
-                await signInAnonymously(auth);
-                console.log("Usuario autenticado anónimamente.");
+                await signInWithEmailAndPassword(auth, email, password);
+                loginForm.style.display = 'none';
+                adminContainer.style.display = 'block';
                 loadMoviesForAdmin();
             } catch (error) {
-                console.error("Error al autenticar:", error);
+                console.error("Error al iniciar sesión:", error.message);
+                alert("Error de inicio de sesión. Verifica tu correo y contraseña.");
             }
-        }
+        });
 
         async function loadMoviesForAdmin() {
             try {
@@ -191,7 +238,7 @@
         function renderAdminMovies(moviesToRender) {
             movieList.innerHTML = '';
             if (moviesToRender.length === 0) {
-                movieList.innerHTML = '<p>No se encontraron películas que coincidan con la búsqueda.</p>';
+                movieList.innerHTML = '<p style="text-align: center; padding: 20px;">No hay películas agregadas.</p>';
                 return;
             }
             moviesToRender.forEach(movie => {
@@ -201,7 +248,7 @@
                     <span>${movie.titulo}</span>
                     <div>
                         <button class="edit-btn" data-id="${movie.id}">Editar</button>
-                        <button class="delete-btn" data-id="${movie.id}">Eliminar</button>
+                        <button class="delete-btn" data-id="${movie.firebaseId}">Eliminar</button>
                     </div>
                 `;
                 movieList.appendChild(item);
@@ -213,9 +260,9 @@
                 button.addEventListener('click', (e) => deleteMovie(e.target.dataset.id));
             });
         }
-        
+
         function editMovie(id) {
-            const movieToEdit = allMovies.find(movie => movie.id === id);
+            const movieToEdit = allMovies.find(movie => String(movie.id) === String(id));
             if (movieToEdit) {
                 movieIdInput.value = movieToEdit.id;
                 titleInput.value = movieToEdit.titulo;
@@ -226,19 +273,17 @@
                 genresInput.value = movieToEdit.generos ? movieToEdit.generos.join(', ') : '';
                 videoUrlInput.value = movieToEdit.video_url || '';
                 saveMovieButton.textContent = 'Actualizar Película';
+                window.scrollTo(0, 0);
             }
         }
 
-        async function deleteMovie(id) {
+        async function deleteMovie(firebaseId) {
             if (confirm('¿Estás seguro de que quieres eliminar esta película?')) {
                 try {
-                    const movieToDelete = allMovies.find(movie => movie.id === id);
-                    if (movieToDelete) {
-                        const docRef = doc(db, "peliculas", movieToDelete.firebaseId);
-                        await deleteDoc(docRef);
-                        alert("Película eliminada con éxito.");
-                        loadMoviesForAdmin();
-                    }
+                    const docRef = doc(db, "peliculas", firebaseId);
+                    await deleteDoc(docRef);
+                    alert("Película eliminada con éxito.");
+                    loadMoviesForAdmin();
                 } catch (e) {
                     console.error("Error al eliminar película:", e);
                     alert("Error al eliminar la película.");
@@ -248,7 +293,7 @@
 
         movieListSearchInput.addEventListener('input', () => {
             const query = movieListSearchInput.value.toLowerCase();
-            const filteredMovies = allMovies.filter(movie => 
+            const filteredMovies = allMovies.filter(movie =>
                 movie.titulo.toLowerCase().includes(query)
             );
             renderAdminMovies(filteredMovies);
@@ -256,18 +301,21 @@
 
         searchButton.addEventListener('click', async () => {
             const query = searchInput.value;
-            if (query.length < 3) return;
+            if (query.length < 2) {
+                alert("Escribe al menos 2 letras para buscar.");
+                return;
+            }
             const url = `${TMDB_API_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&language=es-MX`;
             try {
                 const response = await fetch(url);
                 const data = await response.json();
                 resultsList.innerHTML = '';
                 if (data.results && data.results.length > 0) {
-                    data.results.forEach(movie => {
+                    data.results.slice(0, 5).forEach(movie => { // Limitar a 5 resultados
                         const li = document.createElement('li');
                         li.className = 'result-item';
                         li.innerHTML = `
-                            <img src="https://image.tmdb.org/t/p/w92${movie.poster_path}" onerror="this.src='https://via.placeholder.com/50x75?text=No+IMG'"/>
+                            <img src="${movie.poster_path ? `https://image.tmdb.org/t/p/w92${movie.poster_path}` : 'https://via.placeholder.com/50x75?text=No+IMG'}" />
                             <span>${movie.title} (${movie.release_date ? movie.release_date.substring(0, 4) : 'N/A'})</span>
                             <button data-id="${movie.id}">Seleccionar</button>
                         `;
@@ -292,12 +340,14 @@
                 const movie = await response.json();
                 movieIdInput.value = movie.id;
                 titleInput.value = movie.title;
-                posterInput.value = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
-                backdropInput.value = `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}`;
+                posterInput.value = movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : '';
+                backdropInput.value = movie.backdrop_path ? `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}` : '';
                 overviewInput.value = movie.overview;
                 releaseDateInput.value = movie.release_date;
                 const genreNames = movie.genres.map(g => g.name).join(', ');
                 genresInput.value = genreNames;
+                videoUrlInput.value = '';
+                saveMovieButton.textContent = 'Guardar Película';
             } catch (e) {
                 console.error("Error al obtener detalles de la película:", e);
                 alert("No se pudieron cargar los detalles de la película.");
@@ -305,41 +355,38 @@
         }
 
         saveMovieButton.addEventListener('click', async () => {
-            const newMovie = {
+            if (!movieIdInput.value || !titleInput.value) {
+                alert("Busca y selecciona una película para rellenar los campos obligatorios (ID y Título).");
+                return;
+            }
+            const movieData = {
                 id: movieIdInput.value,
                 titulo: titleInput.value,
                 poster_url: posterInput.value,
                 backdrop_url: backdropInput.value,
                 sinopsis: overviewInput.value,
                 fecha_lanzamiento: releaseDateInput.value,
-                generos: genresInput.value.split(',').map(g => g.trim()),
+                generos: genresInput.value.split(',').map(g => g.trim()).filter(g => g),
                 video_url: videoUrlInput.value,
             };
-            if (!newMovie.titulo || !newMovie.poster_url) {
-                alert("El título y la URL del póster son obligatorios.");
-                return;
-            }
             try {
-                const movieRef = doc(db, "peliculas", newMovie.id);
-                await setDoc(movieRef, newMovie);
+                // Usamos el ID de la película como ID del documento en Firestore.
+                const movieRef = doc(db, "peliculas", movieData.id);
+                await setDoc(movieRef, movieData, { merge: true }); // merge: true actualiza si ya existe
                 alert("Película guardada con éxito.");
-                movieIdInput.value = '';
-                titleInput.value = '';
-                posterInput.value = '';
-                backdropInput.value = '';
-                overviewInput.value = '';
-                releaseDateInput.value = '';
-                genresInput.value = '';
-                videoUrlInput.value = '';
+
+                // Limpiar formulario
+                const inputs = [movieIdInput, titleInput, posterInput, backdropInput, overviewInput, releaseDateInput, genresInput, videoUrlInput];
+                inputs.forEach(input => input.value = '');
                 saveMovieButton.textContent = 'Guardar Película';
+
                 loadMoviesForAdmin();
             } catch (e) {
-                console.error("Error al agregar película:", e);
+                console.error("Error al guardar película:", e);
                 alert("Error al guardar la película.");
             }
         });
 
-        authenticateUser();
     </script>
 </body>
 </html>
