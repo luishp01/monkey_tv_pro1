@@ -46,7 +46,7 @@
             cursor: pointer;
         }
         #login-form button:hover { background-color: #c0392b; }
-        #admin-container { display: none; } /* Ocultar el contenido de admin por defecto */
+        #admin-container { display: none; }
     </style>
 </head>
 <body>
@@ -124,13 +124,53 @@
                 loginForm.style.display = 'none';
                 adminContainer.style.display = 'block';
                 loadChannels();
+                setupSaveButton(); // Llama a la nueva función
             } catch (error) {
                 console.error("Error al iniciar sesión:", error.message);
                 alert("Error de inicio de sesión. Verifica tu correo y contraseña.");
             }
         });
 
-        // --- Funciones para la administración (son las mismas de antes) ---
+        // Configura el botón de guardar una vez que el usuario ha iniciado sesión
+        function setupSaveButton() {
+            saveButton.addEventListener('click', async () => {
+                // Validación para campos vacíos
+                if (!formNombre.value || !formM3u8.value) {
+                    alert("Los campos 'Nombre del Canal' y 'URL M3U8' son obligatorios.");
+                    return;
+                }
+
+                const nuevoCanal = {
+                    nombre: formNombre.value,
+                    m3u8_url: formM3u8.value,
+                    logo_url: formLogo.value,
+                    categoria: formCategoria.value,
+                    idepg: formIdepg.value
+                };
+
+                if (editId) {
+                    await updateDoc(doc(db, "canales", editId), nuevoCanal);
+                    console.log("Canal actualizado con éxito.");
+                    editId = null;
+                    saveButton.textContent = "Guardar Canal";
+                } else {
+                    await addDoc(canalesRef, nuevoCanal);
+                    console.log("Canal agregado con éxito.");
+                }
+
+                // Limpiar los campos del formulario
+                formNombre.value = '';
+                formM3u8.value = '';
+                formLogo.value = '';
+                formCategoria.value = '';
+                formIdepg.value = '';
+                
+                loadChannels();
+            });
+        }
+
+
+        // --- Funciones para la administración ---
         async function loadChannels() {
             channelsList.innerHTML = '';
             const snapshot = await getDocs(canalesRef);
@@ -154,35 +194,15 @@
             document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', deleteChannel));
         }
 
-        saveButton.addEventListener('click', async () => {
-            const nuevoCanal = {
-                nombre: formNombre.value,
-                m3u8_url: formM3u8.value,
-                logo_url: formLogo.value,
-                categoria: formCategoria.value,
-                idepg: formIdepg.value
-            };
-            if (editId) {
-                await updateDoc(doc(db, "canales", editId), nuevoCanal);
-                console.log("Canal actualizado con éxito.");
-                editId = null;
-                saveButton.textContent = "Guardar Canal";
-            } else {
-                await addDoc(canalesRef, nuevoCanal);
-                console.log("Canal agregado con éxito.");
-            }
-            formNombre.value = ''; formM3u8.value = ''; formLogo.value = '';
-            formCategoria.value = ''; formIdepg.value = '';
-            loadChannels();
-        });
-
         async function editChannel(e) {
             const id = e.target.dataset.id;
             const docRef = doc(db, "canales", id);
             const docSnap = await getDocs(canalesRef);
             const canal = docSnap.docs.find(d => d.id === id).data();
-            formNombre.value = canal.nombre; formM3u8.value = canal.m3u8_url;
-            formLogo.value = canal.logo_url; formCategoria.value = canal.categoria;
+            formNombre.value = canal.nombre;
+            formM3u8.value = canal.m3u8_url;
+            formLogo.value = canal.logo_url;
+            formCategoria.value = canal.categoria;
             formIdepg.value = canal.idepg;
             editId = id;
             saveButton.textContent = "Actualizar Canal";
