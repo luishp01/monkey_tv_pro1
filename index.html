@@ -437,7 +437,7 @@
     
     <main class="main-content">
         <div class="categories-section">
-            </div>
+        </div>
         
         <div class="channel-header">
             <h2 class="section-title">TODOS</h2>
@@ -449,7 +449,7 @@
         </div>
         
         <ul class="channel-list">
-            </ul>
+        </ul>
     </main>
 
     <nav class="bottom-nav">
@@ -596,6 +596,8 @@
         const volumeSliderContainer = document.querySelector('.volume-slider-container');
         const videoOverlay = document.querySelector('.video-overlay');
         const videoContainer = document.querySelector('.video-container');
+
+        let overlayTimeout;
 
         // Toggle search bar visibility
         searchIcon.addEventListener('click', () => {
@@ -847,22 +849,51 @@
             }
         });
 
-        // Toggle visibility for overlay and EPG on click
+        // Hide overlay after a few seconds of inactivity
+        function hideOverlay() {
+            clearTimeout(overlayTimeout);
+            overlayTimeout = setTimeout(() => {
+                videoOverlay.classList.remove('visible');
+            }, 3000); // Oculta después de 3 segundos
+        }
+        
+        // Toggle visibility for overlay on click
         videoContainer.addEventListener('click', (e) => {
+            // Check if the click is on an interactive element
             if (e.target.closest('.video-custom-controls') || e.target.closest('.epg-info')) {
                 return;
             }
-            videoOverlay.classList.toggle('visible');
+            // If the video overlay is visible, hide it, otherwise, show it
+            if (videoOverlay.classList.contains('visible')) {
+                videoOverlay.classList.remove('visible');
+                clearTimeout(overlayTimeout);
+            } else {
+                videoOverlay.classList.add('visible');
+                hideOverlay();
+            }
         });
-        
-        // Fullscreen logic
+
+        // Toggle fullscreen
         fullscreenBtn.addEventListener('click', () => {
-            if (videoPlayer.requestFullscreen) {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            } else if (videoPlayer.requestFullscreen) {
                 videoPlayer.requestFullscreen();
             } else if (videoPlayer.webkitRequestFullscreen) {
                 videoPlayer.webkitRequestFullscreen();
             } else if (videoPlayer.msRequestFullscreen) {
                 videoPlayer.msRequestFullscreen();
+            }
+        });
+        
+        // Change the fullscreen button icon
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                fullscreenBtn.classList.remove('fa-expand');
+                fullscreenBtn.classList.add('fa-compress');
+            } else {
+                fullscreenBtn.classList.remove('fa-compress');
+                fullscreenBtn.classList.add('fa-expand');
             }
         });
 
