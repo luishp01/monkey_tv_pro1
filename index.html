@@ -63,7 +63,7 @@
             font-weight: bold;
         }
         
-        /* Contenedor para el buscador y la lupa */
+        /* Search container */
         .search-container {
             display: flex;
             align-items: center;
@@ -105,28 +105,6 @@
             overflow: hidden;
             background-color: #000;
         }
-        
-        /* Solución para el modo pantalla completa */
-        .video-container:-webkit-full-screen {
-            width: 100%;
-            height: 100%;
-            padding: 0;
-        }
-        .video-container:-moz-full-screen {
-            width: 100%;
-            height: 100%;
-            padding: 0;
-        }
-        .video-container:-ms-full-screen {
-            width: 100%;
-            height: 100%;
-            padding: 0;
-        }
-        .video-container:fullscreen {
-            width: 100%;
-            height: 100%;
-            padding: 0;
-        }
 
         .video-player {
             position: absolute;
@@ -146,7 +124,7 @@
             bottom: 0;
             display: flex;
             flex-direction: column;
-            justify-content: space-between; /* Para separar los controles del EPG */
+            justify-content: space-between;
             visibility: hidden;
             opacity: 0;
             transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
@@ -156,20 +134,12 @@
             visibility: visible;
             opacity: 1;
         }
-        .video-container:hover .video-overlay {
-            visibility: visible;
-            opacity: 1;
-        }
-
+        
+        /* EPG Info */
         .epg-info {
-            background-color: rgba(44, 44, 68, 0.7); /* Fondo semitransparente del color de las tarjetas */
-            padding: 15px;
+            background-color: rgba(44, 44, 68, 0.7);
+            padding: 10px;
             color: #fff;
-            position: relative;
-            top: 0; /* Empujar hacia arriba */
-            left: 0;
-            right: 0;
-            z-index: 11;
         }
         .epg-info h3 {
             margin: 0;
@@ -179,7 +149,7 @@
 
         .video-custom-controls {
             background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0));
-            padding: 20px;
+            padding: 10px;
         }
         .video-controls-top {
             display: flex;
@@ -210,7 +180,7 @@
             color: var(--red-heart);
         }
 
-        /* Barras de progreso y volumen */
+        /* Progress and volume bars */
         .progress-bar-container, .volume-slider-container {
             width: 100%;
             height: 5px;
@@ -393,31 +363,31 @@
             margin-top: 20px;
         }
 
-        /* Media Queries para móviles */
+        /* Media Queries for mobile phones */
         @media (max-width: 768px) {
             .video-custom-controls {
-                padding: 10px; /* Reducir el padding */
+                padding: 10px;
             }
             .video-custom-controls i {
-                font-size: 1.2em; /* Reducir el tamaño de los íconos */
+                font-size: 1.2em;
             }
             .video-controls-left {
-                gap: 10px; /* Reducir el espacio entre elementos */
+                gap: 10px;
             }
-            .video-controls-left h3 {
-                font-size: 0.9em; /* Reducir el tamaño del nombre del canal */
+            .epg-info h3 {
+                font-size: 1em;
             }
             .volume-slider-container {
-                width: 60px; /* Reducir el ancho de la barra de volumen */
+                width: 60px;
             }
             .time-info {
-                font-size: 0.7em; /* Reducir el tamaño del texto del tiempo */
+                font-size: 0.7em;
             }
             .search-icon {
-                font-size: 1em; /* Ajuste del icono de búsqueda para móviles */
+                font-size: 1em;
             }
             #search-input.active {
-                width: 150px; /* Ajuste del ancho del input de búsqueda */
+                width: 150px;
             }
         }
     </style>
@@ -454,7 +424,7 @@
                                     <div class="volume-slider" id="volumeSlider"></div>
                                 </div>
                             </div>
-                            </div>
+                        </div>
                         <div class="video-controls-right">
                             <span id="videoTime" class="time-info">00:00 / 00:00</span>
                             <i id="fullscreenBtn" class="fas fa-expand"></i>
@@ -508,8 +478,8 @@
         };
         
         let db, auth, userId;
-        window.allChannelsList = []; // Usamos 'window' para que sea global
-        window.favoritesList = []; // Usamos 'window' para que sea global
+        window.allChannelsList = [];
+        window.favoritesList = [];
         
         function showMessageBox(message, duration = 3000) {
             const messageBox = document.getElementById('messageBox');
@@ -613,7 +583,6 @@
         const videoPlayer = document.getElementById('videoPlayer');
         const categoriesDiv = document.querySelector('.categories-section');
         const navItems = document.querySelectorAll('.bottom-nav .nav-item');
-        const channelNameDisplay = document.getElementById('channelName');
         const playPauseBtn = document.getElementById('playPauseBtn');
         const muteBtn = document.getElementById('muteBtn');
         const fullscreenBtn = document.getElementById('fullscreenBtn');
@@ -627,7 +596,7 @@
         const volumeSliderContainer = document.querySelector('.volume-slider-container');
         const videoOverlay = document.querySelector('.video-overlay');
         const videoContainer = document.querySelector('.video-container');
-        
+
         // Toggle search bar visibility
         searchIcon.addEventListener('click', () => {
             searchInput.classList.toggle('active');
@@ -649,7 +618,7 @@
             }, duration);
         }
         
-        // Función para renderizar las categorías
+        // Render categories
         function renderCategories() {
             categoriesDiv.innerHTML = '';
             
@@ -683,7 +652,7 @@
             });
         }
 
-        // Función para renderizar los canales en la lista
+        // Render channels in the list
         function renderChannels(channels, favorites) {
             channelList.innerHTML = '';
             const favoriteIds = new Set(favorites.map(fav => fav.id));
@@ -776,7 +745,7 @@
             }
         }
 
-        // Lógica de navegación mejorada
+        // Improved navigation logic
         navItems.forEach(item => {
             item.addEventListener('click', (e) => {
                 const view = item.dataset.view;
@@ -801,7 +770,7 @@
             });
         });
 
-        // Lógica para la barra de búsqueda
+        // Search bar logic
         searchInput.addEventListener('input', () => {
             const query = searchInput.value.toLowerCase();
             const filteredChannels = window.allChannelsList.filter(channel => 
@@ -878,14 +847,22 @@
             }
         });
 
+        // Toggle visibility for overlay and EPG on click
+        videoContainer.addEventListener('click', (e) => {
+            if (e.target.closest('.video-custom-controls') || e.target.closest('.epg-info')) {
+                return;
+            }
+            videoOverlay.classList.toggle('visible');
+        });
+        
+        // Fullscreen logic
         fullscreenBtn.addEventListener('click', () => {
-            const videoContainer = document.querySelector('.video-container');
-            if (videoContainer.requestFullscreen) {
-                videoContainer.requestFullscreen();
-            } else if (videoContainer.webkitRequestFullscreen) {
-                videoContainer.webkitRequestFullscreen();
-            } else if (videoContainer.msRequestFullscreen) {
-                videoContainer.msRequestFullscreen();
+            if (videoPlayer.requestFullscreen) {
+                videoPlayer.requestFullscreen();
+            } else if (videoPlayer.webkitRequestFullscreen) {
+                videoPlayer.webkitRequestFullscreen();
+            } else if (videoPlayer.msRequestFullscreen) {
+                videoPlayer.msRequestFullscreen();
             }
         });
 
@@ -894,16 +871,6 @@
         });
         videoPlayer.addEventListener('pause', () => {
             playPauseBtn.className = 'fas fa-play';
-        });
-        
-        // Control de visibilidad para el overlay y el EPG
-        videoContainer.addEventListener('click', (e) => {
-            // Evitar que el clic en los controles oculte el overlay
-            if (e.target.closest('.video-custom-controls')) {
-                return;
-            }
-            // Toggle de la visibilidad del overlay y los controles EPG
-            videoOverlay.classList.toggle('visible');
         });
     </script>
 </body>
