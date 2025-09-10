@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MonkeyTV PRO</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    
+    <style>
+        :root {
+            --dark-bg: #1a1a2e;
+            --dark-card: #2c2c44;
+            --red-heart: #e74c3c;
+            --text-light: #ecf0f1;
+            --text-muted: #95a5a6;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        /* Message Box */
+        #messageBox {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 1000;
+            display: none;
+            text-align: center;
+        }
+
+        /* Header */
+        .header {
+            padding: 10px;
+            background-color: #000;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px 10px;
+        }
+
+        .app-title {
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .fa-search {
+            font-size: 1.2em;
+            color: var(--text-muted);
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            overflow: hidden;
+            background-color: #000;
+        }
+
+        .video-player {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* New custom video controls and EPG */
+        .video-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+            z-index: 10;
+        }
+        .video-container:hover .video-overlay {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .epg-info {
+            background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0));
+            padding: 20px;
+            color: #fff;
+        }
+        .epg-info h3 {
+            margin: 0 0 5px 0;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .epg-info p {
+            margin: 0;
+            font-size: 0.9em;
+            color: var(--text-muted);
+        }
+
+        .video-custom-controls {
+            background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0));
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .video-controls-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .video-controls-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .video-controls-left h3 {
+            margin: 0;
+            font-size: 1.2em;
+        }
+        .video-custom-controls i {
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .video-custom-controls i:hover {
+            color: var(--red-heart);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex-grow: 1;
+            padding: 10px;
+        }
+
+        /* Categories Section */
+        .categories-section {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            padding: 10px 0;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .categories-section::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .category-item {
+            background-color: var(--dark-card);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .category-item.active {
+            background-color: var(--red-heart);
+        }
+
+        /* Channel List Header */
+        .channel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+        }
+
+        .section-title {
+            font-size: 1em;
+            font-weight: bold;
+            color: var(--text-light);
+        }
+
+        .select-channel-text {
+            font-size: 0.8em;
+            color: var(--text-muted);
+        }
+
+        .channel-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .channel-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: var(--dark-card);
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .channel-item:hover {
+            box-shadow: 0 0 15px rgba(231, 76, 60, 0.5);
+            transform: translateY(-2px);
+            transition: all 0.3s ease;
+        }
+
+        .channel-logo-container {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+        }
+
+        .channel-item .channel-logo {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        .channel-details h3 {
+            margin: 0;
+            font-size: 1em;
+        }
+
+        .channel-details p {
+            margin: 0;
+            font-size: 0.8em;
+            color: var(--text-muted);
+        }
+
+        .channel-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .channel-actions .fa-heart {
+            color: var(--text-muted);
+        }
+        .channel-actions .fa-heart.favorited {
+            color: var(--red-heart);
+            transform: scale(1.2);
+            transition: transform 0.2s ease;
+        }
+
+        .channel-actions .fa-cast {
+            color: var(--text-muted);
+        }
+        .channel-actions .fa-cast:hover {
+            color: var(--text-light);
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 60px;
+            background-color: var(--dark-card);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .bottom-nav .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.7em;
+            text-align: center;
+        }
+
+        .bottom-nav .nav-item.active {
+            color: var(--text-light);
+        }
+
+        .bottom-nav .nav-item i {
+            font-size: 1.4em;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="messageBox"></div>
+    
+    <header class="header">
+        <div class="header-top">
+            <span class="app-title">MonkeyTV PRO</span>
+            <i class="fas fa-search"></i>
+        </div>
+        <div class="video-container">
+            <video id="videoPlayer" class="video-player" autoplay preload="auto"></video>
+            
+            <div class="video-overlay">
+                <div class="epg-info">
+                    <h3 id="epgCurrentProgram">Cargando Guía...</h3>
+                    <p id="epgNextProgram"></p>
+                </div>
+                <div id="videoControls" class="video-custom-controls">
+                    <div class="video-controls-left">
+                        <i id="playPauseBtn" class="fas fa-pause"></i>
+                        <i id="muteBtn" class="fas fa-volume-up"></i>
+                        <h3 id="channelName">Selecciona un canal</h3>
+                    </div>
+                    <div class="video-controls-right">
+                        <i id="fullscreenBtn" class="fas fa-expand"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="categories-section">
+            <div class="category-item active" data-category="TODOS">TODOS</div>
+        </div>
+        
+        <div class="channel-header">
+            <h2 class="section-title">TODOS</h2>
+            <span class="select-channel-text">SELECCIONA UN CANAL</span>
+        </div>
+        
+        <ul class="channel-list">
+            </ul>
+    </main>
+
+    <nav class="bottom-nav">
+        <a href="#" class="nav-item active" data-view="all">
+            <i class="fas fa-home"></i>
+            <span>Inicio</span>
+        </a>
+        <a href="#" class="nav-item" data-view="favorites">
+            <i class="fas fa-heart"></i>
+            <span>Favoritos</span>
+        </a>
+        <a href="#" class="nav-item">
+            <i class="fas fa-bell"></i>
+            <span>Notificaciones</span>
+        </a>
+    </nav>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyCLGiT_UeTm578cQeCwLldH50qOjounCOs",
+          authDomain: "miappdetv-db.firebaseapp.com",
+          projectId: "miappdetv-db",
+          storageBucket: "miappdetv-db.firebasestorage.app",
+          messagingSenderId: "515640857376",
+          appId: "1:515640857376:web:89e5bb051ee79f030c3d45"
+        };
+        
+        let db, auth, userId;
+
+        function showMessageBox(message, duration = 3000) {
+            const messageBox = document.getElementById('messageBox');
+            messageBox.textContent = message;
+            messageBox.style.display = 'block';
+            setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, duration);
+        }
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            
+            signInAnonymously(auth).then(userCredential => {
+                userId = userCredential.user.uid;
+                showMessageBox(`Bienvenido, tu ID de usuario es: ${userId}`);
+                setupListeners();
+                loadChannelsFromFirebase();
+            }).catch(error => {
+                console.error("Error al inicializar Firebase Auth:", error);
+                showMessageBox("Error al inicializar la base de datos (Auth).");
+            });
+
+        } catch (error) {
+            console.error("Error al inicializar Firebase App:", error);
+            showMessageBox("Error al inicializar la base de datos.");
+        }
+        
+        async function loadChannelsFromFirebase() {
+            try {
+                const canalesRef = collection(db, "canales");
+                const snapshot = await getDocs(canalesRef);
+                const fetchedChannels = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                if (fetchedChannels.length === 0) {
+                    throw new Error("La base de datos de canales está vacía.");
+                }
+
+                window.allChannelsList = fetchedChannels;
+                window.categorias = [...new Set(window.allChannelsList.map(c => c.categoria))];
+                window.renderCategories();
+                window.currentChannels = window.allChannelsList;
+                window.renderChannels(window.allChannelsList, window.favoritesList);
+                await loadEpg();
+
+            } catch (e) {
+                console.error('Error al cargar canales desde Firebase:', e);
+                const fallbackMessage = document.createElement('li');
+                fallbackMessage.textContent = 'No se pudo cargar la lista de canales. Revisa tu conexión a Firebase o la estructura de tu base de datos.';
+                fallbackMessage.style.textAlign = 'center';
+                fallbackMessage.style.padding = '20px';
+                document.querySelector('.channel-list').appendChild(fallbackMessage);
+            }
+        }
+        
+        function setupListeners() {
+            const favoritesRef = collection(db, `users/${userId}/favorites`);
+            onSnapshot(favoritesRef, (snapshot) => {
+                const favorites = snapshot.docs.map(doc => doc.data());
+                window.favoritesList = favorites;
+                window.renderChannels(window.currentChannels, favorites);
+            }, (error) => {
+                console.error("Error al obtener los favoritos:", error);
+            });
+        }
+        
+        window.addFavorite = async (channel) => {
+            try {
+                const docRef = doc(db, `users/${userId}/favorites/${channel.id}`);
+                await setDoc(docRef, channel);
+                showMessageBox("Canal agregado a favoritos!");
+            } catch (e) {
+                console.error("Error al agregar a favoritos:", e);
+                showMessageBox("Error al agregar a favoritos.");
+            }
+        };
+        
+        window.removeFavorite = async (channel) => {
+            try {
+                const docRef = doc(db, `users/${userId}/favorites/${channel.id}`);
+                await deleteDoc(docRef);
+                showMessageBox("Canal eliminado de favoritos.");
+            } catch (e) {
+                console.error("Error al eliminar de favoritos:", e);
+                showMessageBox("Error al eliminar de favoritos.");
+            }
+        };
+    </script>
+    
+    <script>
+        const CAIDO_URL = "https://tvjrflix.appsjr.pro/caido.mp4";
+        const EPG_URL = "https://www.open-epg.com/files/mexico2.xml"; // URL del archivo EPG
+        const channelList = document.querySelector('.channel-list');
+        const videoPlayer = document.getElementById('videoPlayer');
+        const categoriesDiv = document.querySelector('.categories-section');
+        const navItems = document.querySelectorAll('.bottom-nav .nav-item');
+        const channelNameDisplay = document.getElementById('channelName');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const muteBtn = document.getElementById('muteBtn');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const epgCurrentProgram = document.getElementById('epgCurrentProgram');
+        const epgNextProgram = document.getElementById('epgNextProgram');
+        
+        window.allChannelsList = [];
+        window.categorias = [];
+        window.favoritesList = [];
+        window.currentChannels = [];
+        let epgData = null;
+
+        async function loadEpg() {
+            try {
+                const response = await fetch(EPG_URL);
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+                const xmlText = await response.text();
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+                
+                // Verificar si el parseo fue exitoso
+                if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
+                    throw new Error("Error al analizar el XML de la guía EPG.");
+                }
+                
+                epgData = xmlDoc;
+                console.log("Guía EPG cargada con éxito.");
+                showMessageBox("Guía EPG cargada.");
+            } catch (error) {
+                console.error("Error al cargar la guía EPG:", error);
+                showMessageBox("Guía no disponible.");
+            }
+        }
+        
+        function updateEpgDisplay(idepg) {
+            if (!epgData || !idepg) {
+                epgCurrentProgram.textContent = "Guía no disponible.";
+                epgNextProgram.textContent = "";
+                return;
+            }
+
+            const channelElement = epgData.querySelector(`channel[id="${idepg}"]`);
+            if (!channelElement) {
+                epgCurrentProgram.textContent = "Sin información EPG para este canal.";
+                epgNextProgram.textContent = "";
+                return;
+            }
+
+            const programs = channelElement.querySelectorAll('programme');
+            const now = new Date();
+            let currentProgram = null;
+            let nextProgram = null;
+
+            programs.forEach(program => {
+                const startStr = program.getAttribute('start').substring(0, 14);
+                const endStr = program.getAttribute('stop').substring(0, 14);
+                
+                const start = new Date(startStr.substring(0, 4) + '-' + startStr.substring(4, 6) + '-' + startStr.substring(6, 8) + 'T' + startStr.substring(8, 10) + ':' + startStr.substring(10, 12) + ':' + startStr.substring(12, 14));
+                const end = new Date(endStr.substring(0, 4) + '-' + endStr.substring(4, 6) + '-' + endStr.substring(6, 8) + 'T' + endStr.substring(8, 10) + ':' + endStr.substring(10, 12) + ':' + endStr.substring(12, 14));
+                
+                if (now >= start && now < end) {
+                    currentProgram = program;
+                } else if (now < start && !nextProgram) {
+                    nextProgram = program;
+                }
+            });
+
+            if (currentProgram) {
+                const title = currentProgram.querySelector('title').textContent;
+                const start = currentProgram.getAttribute('start').substring(8, 12);
+                const end = currentProgram.getAttribute('stop').substring(8, 12);
+                epgCurrentProgram.textContent = `${title} (${start.substring(0, 2)}:${start.substring(2, 4)} - ${end.substring(0, 2)}:${end.substring(2, 4)})`;
+            } else {
+                epgCurrentProgram.textContent = "Sin programa actual.";
+            }
+
+            if (nextProgram) {
+                const nextTitle = nextProgram.querySelector('title').textContent;
+                const nextStart = nextProgram.getAttribute('start').substring(8, 12);
+                epgNextProgram.textContent = `Siguiente: ${nextTitle} (${nextStart.substring(0, 2)}:${nextStart.substring(2, 4)})`;
+            } else {
+                epgNextProgram.textContent = "No hay información del siguiente programa.";
+            }
+        }
+
+        window.renderCategories = () => {
+            categoriesDiv.innerHTML = '';
+            const allButton = document.createElement('div');
+            allButton.className = 'category-item active';
+            allButton.textContent = 'TODOS';
+            allButton.addEventListener('click', () => {
+                document.querySelectorAll('.category-item').forEach(btn => btn.classList.remove('active'));
+                allButton.classList.add('active');
+                window.currentChannels = window.allChannelsList;
+                window.renderChannels(window.allChannelsList, window.favoritesList);
+            });
+            categoriesDiv.appendChild(allButton);
+
+            window.categorias.forEach(cat => {
+                const button = document.createElement('div');
+                button.className = 'category-item';
+                button.textContent = cat;
+                button.addEventListener('click', () => {
+                    document.querySelectorAll('.category-item').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    window.currentChannels = window.allChannelsList.filter(c => c.categoria === cat);
+                    window.renderChannels(window.currentChannels, window.favoritesList);
+                });
+                categoriesDiv.appendChild(button);
+            });
+        };
+        
+        window.renderChannels = (channels, favorites) => {
+            channelList.innerHTML = '';
+            const favoriteIds = new Set(favorites.map(fav => fav.id));
+            
+            channels.forEach(channel => {
+                const isFavorited = favoriteIds.has(channel.id);
+                
+                const li = document.createElement('li');
+                li.className = 'channel-item';
+                li.innerHTML = `
+                    <div class="channel-logo-container">
+                        <img src="${channel.logo_url}" alt="${channel.nombre} Logo" class="channel-logo" onerror="this.onerror=null;this.src='https://placehold.co/50x50/2c2c44/ecf0f1?text=IMG'"/>
+                        <div class="channel-details">
+                            <h3>${channel.nombre}</h3>
+                            <p>${channel.categoria}</p>
+                        </div>
+                    </div>
+                    <div class="channel-actions">
+                        <i class="fas fa-heart ${isFavorited ? 'favorited' : ''}"></i>
+                        <i class="fas fa-cast" title="Chromecast"></i>
+                    </div>
+                `;
+                li.querySelector('.channel-logo-container').addEventListener('click', () => {
+                    playCanal(channel);
+                });
+                
+                const heartIcon = li.querySelector('.fa-heart');
+                heartIcon.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (isFavorited) {
+                        window.removeFavorite(channel);
+                    } else {
+                        window.addFavorite(channel);
+                    }
+                });
+                
+                channelList.appendChild(li);
+            });
+        };
+        
+        function playCanal(channel) {
+            const finalUrl = channel.m3u8_url;
+            if (videoPlayer.hls) videoPlayer.hls.destroy();
+
+            channelNameDisplay.textContent = channel.nombre;
+            playPauseBtn.className = 'fas fa-pause';
+            muteBtn.className = videoPlayer.muted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
+            updateEpgDisplay(channel.idepg);
+
+            if (Hls.isSupported()) {
+                const hls = new Hls();
+                hls.loadSource(finalUrl);
+                hls.attachMedia(videoPlayer);
+                videoPlayer.hls = hls;
+                hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                    videoPlayer.play().catch(() => {
+                        showMessageBox('?? Canal no disponible. Video alternativo.', 4000);
+                        videoPlayer.src = CAIDO_URL;
+                        videoPlayer.play();
+                    });
+                });
+                hls.on(Hls.Events.ERROR, (event, data) => {
+                    if (data.fatal) {
+                        showMessageBox('?? Canal no disponible. Video alternativo.', 4000);
+                        videoPlayer.src = CAIDO_URL;
+                        videoPlayer.play();
+                    }
+                });
+            } else if (videoPlayer.canPlayType('application/vnd.apple.mpegurl')) {
+                videoPlayer.src = finalUrl;
+                videoPlayer.addEventListener('loadedmetadata', () => {
+                    videoPlayer.play().catch(() => {
+                        showMessageBox('?? Canal no disponible. Video alternativo.', 4000);
+                        videoPlayer.src = CAIDO_URL;
+                        videoPlayer.play();
+                    });
+                }, {
+                    once: true
+                });
+            } else {
+                showMessageBox('Tu navegador no soporta HLS.');
+            }
+        }
+
+        function filterFavorites() {
+            window.renderChannels(window.favoritesList, window.favoritesList);
+        }
+
+        // --- Lógica para los nuevos controles de video ---
+        playPauseBtn.addEventListener('click', () => {
+            if (videoPlayer.paused) {
+                videoPlayer.play();
+                playPauseBtn.className = 'fas fa-pause';
+            } else {
+                videoPlayer.pause();
+                playPauseBtn.className = 'fas fa-play';
+            }
+        });
+
+        muteBtn.addEventListener('click', () => {
+            videoPlayer.muted = !videoPlayer.muted;
+            if (videoPlayer.muted) {
+                muteBtn.className = 'fas fa-volume-mute';
+            } else {
+                muteBtn.className = 'fas fa-volume-up';
+            }
+        });
+
+        fullscreenBtn.addEventListener('click', () => {
+            if (videoPlayer.requestFullscreen) {
+                videoPlayer.requestFullscreen();
+            } else if (videoPlayer.webkitRequestFullscreen) {
+                videoPlayer.webkitRequestFullscreen();
+            } else if (videoPlayer.msRequestFullscreen) {
+                videoPlayer.msRequestFullscreen();
+            }
+        });
+
+        // Eventos para sincronizar los botones con el estado del video
+        videoPlayer.addEventListener('play', () => {
+            playPauseBtn.className = 'fas fa-pause';
+        });
+        videoPlayer.addEventListener('pause', () => {
+            playPauseBtn.className = 'fas fa-play';
+        });
+        videoPlayer.addEventListener('volumechange', () => {
+            if (videoPlayer.muted || videoPlayer.volume === 0) {
+                muteBtn.className = 'fas fa-volume-mute';
+            } else {
+                muteBtn.className = 'fas fa-volume-up';
+            }
+        });
+
+        // Manejo de la navegación inferior
+        navItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                navItems.forEach(nav => nav.classList.remove('active'));
+                item.classList.add('active');
+                const view = item.dataset.view;
+                if (view === 'favorites') {
+                    filterFavorites();
+                } else {
+                    window.renderChannels(window.allChannelsList, window.favoritesList);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
