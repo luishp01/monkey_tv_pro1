@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Guía de Programación - MonkeyTV PRO</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        :root {
+            --dark-bg: #1a1a2e;
+            --dark-card: #2c2c44;
+            --red-heart: #e74c3c;
+            --text-light: #ecf0f1;
+            --text-muted: #95a5a6;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .header {
+            background-color: #000;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header a {
+            color: var(--text-light);
+            text-decoration: none;
+            font-size: 1.2em;
+        }
+        
+        .epg-container {
+            padding: 20px;
+        }
+
+        .epg-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .epg-header h1 {
+            margin: 0;
+        }
+        .epg-header p {
+            margin: 5px 0 0;
+            color: var(--text-muted);
+        }
+
+        .epg-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .epg-channel-item {
+            background-color: var(--dark-card);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .epg-channel-item h2 {
+            margin: 0;
+            font-size: 1.2em;
+            border-bottom: 2px solid var(--red-heart);
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+
+        .epg-program-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .epg-program-item {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 10px 0;
+        }
+        .epg-program-item:last-child {
+            border-bottom: none;
+        }
+
+        .program-time {
+            font-weight: bold;
+            color: var(--red-heart);
+            width: 60px;
+            flex-shrink: 0;
+        }
+        .program-title {
+            flex-grow: 1;
+            padding-left: 10px;
+        }
+        
+        #loading-message {
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 60px;
+            background-color: var(--dark-card);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .bottom-nav .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.7em;
+            text-align: center;
+        }
+
+        .bottom-nav .nav-item.active {
+            color: var(--text-light);
+        }
+
+        .bottom-nav .nav-item i {
+            font-size: 1.4em;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <a href="index.html" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <span>Guía de Programación</span>
+        <div style="width: 20px;"></div>
+    </header>
+
+    <main class="epg-container">
+        <div id="loading-message">
+            <h3>Cargando guía...</h3>
+        </div>
+        <ul id="epgList" class="epg-list">
+            </ul>
+    </main>
+    
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <i class="fas fa-home"></i>
+            <span>Inicio</span>
+        </a>
+        <a href="#" class="nav-item">
+            <i class="fas fa-heart"></i>
+            <span>Favoritos</span>
+        </a>
+        <a href="epg.html" class="nav-item active">
+            <i class="fas fa-tv"></i>
+            <span>Guía</span>
+        </a>
+    </nav>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadEpg();
+        });
+
+        async function loadEpg() {
+            const loadingMessage = document.getElementById('loading-message');
+            const epgList = document.getElementById('epgList');
+            loadingMessage.style.display = 'block';
+
+            try {
+                const response = await fetch("mexico2.xml");
+                if (!response.ok) {
+                    throw new Error("Error de red al cargar el EPG.");
+                }
+                const xmlText = await response.text();
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+                
+                if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
+                    throw new Error("El archivo XML está dañado o no es válido.");
+                }
+
+                renderEpg(xmlDoc);
+            } catch (error) {
+                console.error("Error al cargar la guía EPG:", error);
+                epgList.innerHTML = `<li style="text-align: center; padding: 20px;">No se pudo cargar la guía de programación. Intenta de nuevo más tarde.</li>`;
+            } finally {
+                loadingMessage.style.display = 'none';
+            }
+        }
+
+        function renderEpg(xmlDoc) {
+            const epgList = document.getElementById('epgList');
+            epgList.innerHTML = ''; // Limpiar la lista
+
+            const channels = xmlDoc.querySelectorAll('channel');
+            
+            channels.forEach(channel => {
+                const channelId = channel.id;
+                const channelName = channel.querySelector('display-name[lang="es"]').textContent;
+
+                const programs = xmlDoc.querySelectorAll(`programme[channel="${channelId}"]`);
+                
+                if (programs.length > 0) {
+                    const channelItem = document.createElement('li');
+                    channelItem.className = 'epg-channel-item';
+                    
+                    const channelTitle = document.createElement('h2');
+                    channelTitle.textContent = channelName;
+                    channelItem.appendChild(channelTitle);
+
+                    const programList = document.createElement('ul');
+                    programList.className = 'epg-program-list';
+                    
+                    programs.forEach(program => {
+                        const start = program.getAttribute('start');
+                        const stop = program.getAttribute('stop');
+                        const title = program.querySelector('title[lang="es"]').textContent;
+                        
+                        const startTime = new Date(start.substring(0, 4), start.substring(4, 6) - 1, start.substring(6, 8), start.substring(8, 10), start.substring(10, 12));
+                        const stopTime = new Date(stop.substring(0, 4), stop.substring(4, 6) - 1, stop.substring(6, 8), stop.substring(8, 10), stop.substring(10, 12));
+                        
+                        const formattedStartTime = startTime.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+                        const formattedStopTime = stopTime.toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+
+                        const programItem = document.createElement('li');
+                        programItem.className = 'epg-program-item';
+                        programItem.innerHTML = `
+                            <span class="program-time">${formattedStartTime} - ${formattedStopTime}</span>
+                            <span class="program-title">${title}</span>
+                        `;
+                        programList.appendChild(programItem);
+                    });
+                    
+                    channelItem.appendChild(programList);
+                    epgList.appendChild(channelItem);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
