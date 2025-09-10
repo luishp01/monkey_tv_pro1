@@ -310,7 +310,7 @@
             
             <div class="video-overlay">
                 <div class="epg-info">
-                    <h3 id="epgCurrentProgram">Cargando Guía...</h3>
+                    <h3 id="epgCurrentProgram">Cargando GuÃ­a...</h3>
                     <p id="epgNextProgram"></p>
                 </div>
                 <div id="videoControls" class="video-custom-controls">
@@ -408,7 +408,7 @@
                 const fetchedChannels = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 
                 if (fetchedChannels.length === 0) {
-                    throw new Error("La base de datos de canales está vacía.");
+                    throw new Error("La base de datos de canales estÃ¡ vacÃ­a.");
                 }
 
                 window.allChannelsList = fetchedChannels;
@@ -421,7 +421,7 @@
             } catch (e) {
                 console.error('Error al cargar canales desde Firebase:', e);
                 const fallbackMessage = document.createElement('li');
-                fallbackMessage.textContent = 'No se pudo cargar la lista de canales. Revisa tu conexión a Firebase o la estructura de tu base de datos.';
+                fallbackMessage.textContent = 'No se pudo cargar la lista de canales. Revisa tu conexiÃ³n a Firebase o la estructura de tu base de datos.';
                 fallbackMessage.style.textAlign = 'center';
                 fallbackMessage.style.padding = '20px';
                 document.querySelector('.channel-list').appendChild(fallbackMessage);
@@ -494,28 +494,28 @@
                 
                 // Verificar si el parseo fue exitoso
                 if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
-                    throw new Error("Error al analizar el XML de la guía EPG.");
+                    throw new Error("Error al analizar el XML de la guÃ­a EPG.");
                 }
                 
                 epgData = xmlDoc;
-                console.log("Guía EPG cargada con éxito.");
-                showMessageBox("Guía EPG cargada.");
+                console.log("GuÃ­a EPG cargada con Ã©xito.");
+                showMessageBox("GuÃ­a EPG cargada.");
             } catch (error) {
-                console.error("Error al cargar la guía EPG:", error);
-                showMessageBox("Guía no disponible.");
+                console.error("Error al cargar la guÃ­a EPG:", error);
+                showMessageBox("GuÃ­a no disponible.");
             }
         }
         
         function updateEpgDisplay(idepg) {
             if (!epgData || !idepg) {
-                epgCurrentProgram.textContent = "Guía no disponible.";
+                epgCurrentProgram.textContent = "GuÃ­a no disponible.";
                 epgNextProgram.textContent = "";
                 return;
             }
 
             const channelElement = epgData.querySelector(`channel[id="${idepg}"]`);
             if (!channelElement) {
-                epgCurrentProgram.textContent = "Sin información EPG para este canal.";
+                epgCurrentProgram.textContent = "Sin informaciÃ³n EPG para este canal.";
                 epgNextProgram.textContent = "";
                 return;
             }
@@ -553,7 +553,7 @@
                 const nextStart = nextProgram.getAttribute('start').substring(8, 12);
                 epgNextProgram.textContent = `Siguiente: ${nextTitle} (${nextStart.substring(0, 2)}:${nextStart.substring(2, 4)})`;
             } else {
-                epgNextProgram.textContent = "No hay información del siguiente programa.";
+                epgNextProgram.textContent = "No hay informaciÃ³n del siguiente programa.";
             }
         }
 
@@ -672,7 +672,7 @@
             window.renderChannels(window.favoritesList, window.favoritesList);
         }
 
-        // --- Lógica para los nuevos controles de video ---
+        // --- LÃ³gica para los nuevos controles de video ---
         playPauseBtn.addEventListener('click', () => {
             if (videoPlayer.paused) {
                 videoPlayer.play();
@@ -717,7 +717,7 @@
             }
         });
 
-        // Manejo de la navegación inferior
+        // Manejo de la navegaciÃ³n inferior
         navItems.forEach(item => {
             item.addEventListener('click', (e) => {
                 navItems.forEach(nav => nav.classList.remove('active'));
