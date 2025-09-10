@@ -3,299 +3,343 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Películas - MonkeyTV PRO</title>
+    <title>Admin Películas - MonkeyTV PRO</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        :root {
-            --dark-bg: #1a1a2e;
-            --dark-card: #2c2c44;
-            --red-heart: #e74c3c;
-            --text-light: #ecf0f1;
-            --text-muted: #95a5a6;
+        body { font-family: sans-serif; background-color: #1a1a2e; color: #ecf0f1; padding: 20px; }
+        .container { max-width: 800px; margin: auto; }
+        h1 { text-align: center; color: #e74c3c; }
+        #form-container { background-color: #2c2c44; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        #form-container input, #form-container button, #form-container textarea { 
+            width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: none; 
+            background-color: #1a1a2e; color: #ecf0f1; 
         }
-
-        body {
-            font-family: 'Arial', sans-serif;
-            background-color: var(--dark-bg);
-            color: var(--text-light);
-            margin: 0;
-            padding: 0;
-            -webkit-font-smoothing: antialiased;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
+        #form-container button { background-color: #3498db; color: white; cursor: pointer; }
+        #form-container button:hover { background-color: #2980b9; }
         
-        .header {
-            background-color: var(--dark-card);
-            padding: 15px;
+        .search-movie-container {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
         }
-        .header h1 {
-            font-size: 1.5em;
-            margin: 0;
-        }
-        .search-container {
-            position: relative;
-        }
-        #search-input {
-            padding: 8px 15px;
-            border-radius: 20px;
-            border: 1px solid #555;
-            background-color: #1a1a2e;
-            color: #ecf0f1;
-            width: 200px;
-            transition: width 0.3s ease-in-out;
-        }
-        .search-icon {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-        }
-        
-        .main-content {
-            padding: 20px;
+        .search-movie-container input {
             flex-grow: 1;
         }
 
-        .categories-section {
-            display: flex;
-            overflow-x: auto;
-            gap: 10px;
-            padding: 10px 0;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
+        #results-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 10px;
         }
-        .categories-section::-webkit-scrollbar {
-            display: none;
-        }
-        
-        .category-item {
-            background-color: var(--dark-card);
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 0.8em;
-            white-space: nowrap;
-            cursor: pointer;
-            transition: background-color 0.2s;
-        }
-        .category-item.active {
-            background-color: var(--red-heart);
-        }
-
-        .movie-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .movie-card {
-            background-color: var(--dark-card);
-            border-radius: 10px;
-            overflow: hidden;
-            text-align: center;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .movie-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.5);
-        }
-        .movie-card img {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-        }
-        .movie-info {
+        .result-item {
+            background-color: #2c2c44;
             padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
         }
-        .movie-info h3 {
-            font-size: 0.9em;
-            margin: 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .result-item img {
+            width: 50px;
+            height: 75px;
+            object-fit: cover;
+            border-radius: 3px;
+            margin-right: 10px;
         }
-        .movie-info p {
-            font-size: 0.7em;
-            color: var(--text-muted);
-            margin: 5px 0 0;
+        .result-item span {
+            flex-grow: 1;
+        }
+        .result-item button {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 5px;
         }
 
-        .bottom-nav {
+        #movie-list-container {
+            background-color: #2c2c44;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        .movie-list-item {
             display: flex;
-            justify-content: space-around;
+            justify-content: space-between;
             align-items: center;
-            height: 60px;
-            background-color: var(--dark-card);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: #1a1a2e;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 8px;
         }
-        .bottom-nav .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-decoration: none;
-            color: var(--text-muted);
-            font-size: 0.7em;
-            text-align: center;
+        .movie-list-item span {
+            flex-grow: 1;
+            padding-right: 10px;
         }
-        .bottom-nav .nav-item.active {
-            color: var(--text-light);
+        .movie-list-item button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 5px;
         }
-        .bottom-nav .nav-item i {
-            font-size: 1.4em;
-            margin-bottom: 5px;
+        .movie-list-item .delete-btn {
+            background-color: #e74c3c;
         }
     </style>
 </head>
 <body>
-    <header class="header">
-        <h1>Películas</h1>
-        <div class="search-container">
-            <input type="text" id="search-input" placeholder="Buscar película...">
-            <i class="fas fa-search search-icon"></i>
-        </div>
-    </header>
-
-    <main class="main-content">
-        <div class="categories-section">
-            </div>
+    <div class="container">
+        <h1>Admin de Películas</h1>
         
-        <div class="movie-grid">
+        <div id="form-container">
+            <h3>Buscar y Agregar Película</h3>
+            <div class="search-movie-container">
+                <input type="text" id="movie-search" placeholder="Buscar película por nombre...">
+                <button id="search-button">Buscar</button>
             </div>
-    </main>
+            
+            <ul id="results-list"></ul>
+            
+            <hr style="border: 1px solid #555; margin: 20px 0;">
+            
+            <input type="hidden" id="movie-id">
+            <input type="text" id="title" placeholder="Título" required>
+            <input type="text" id="poster_url" placeholder="URL del Póster" required>
+            <input type="text" id="backdrop_url" placeholder="URL del Fondo" required>
+            <textarea id="overview" placeholder="Sinopsis" rows="4"></textarea>
+            <input type="text" id="release_date" placeholder="Fecha de Lanzamiento">
+            <input type="text" id="genres" placeholder="Géneros (separados por coma)">
+            <input type="text" id="video_url" placeholder="URL del Video (opcional)">
+            <button id="save-movie-button">Guardar Película</button>
+        </div>
 
-    <nav class="bottom-nav">
-        <a href="index.html" class="nav-item">
-            <i class="fas fa-home"></i>
-            <span>Inicio</span>
-        </a>
-        <a href="#" class="nav-item">
-            <i class="fas fa-heart"></i>
-            <span>Favoritos</span>
-        </a>
-        <a href="peliculas.html" class="nav-item active">
-            <i class="fas fa-film"></i>
-            <span>Películas</span>
-        </a>
-    </nav>
-
+        <div id="movie-list-container">
+            <h3>Películas Existentes</h3>
+            <input type="text" id="movie-list-search" placeholder="Buscar en películas agregadas...">
+            <div id="movie-list">
+                </div>
+        </div>
+    </div>
+    
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-
+        // CONFIGURACIÓN DE FIREBASE
         const firebaseConfig = {
-            apiKey: "AIzaSyCLGiT_UeTm578cQeCwLldH50qOjounCOs",
-            authDomain: "miappdetv-db.firebaseapp.com",
-            projectId: "miappdetv-db",
-            storageBucket: "miappdetv-db.firebasestorage.app",
-            messagingSenderId: "515640857376",
-            appId: "1:515640857376:web:89e5bb051ee79f030c3d45"
+          apiKey: "AIzaSyCLGiT_UeTm578cQeCwLldH50qOjounCOs",
+          authDomain: "miappdetv-db.firebaseapp.com",
+          databaseURL: "https://miappdetv-db-default-rtdb.firebaseio.com",
+          projectId: "miappdetv-db",
+          storageBucket: "miappdetv-db.firebasestorage.app",
+          messagingSenderId: "515640857376",
+          appId: "1:515640857376:web:89e5bb051ee79f030c3d45"
         };
-        
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
-        const movieGrid = document.querySelector('.movie-grid');
-        const categoriesSection = document.querySelector('.categories-section');
-        const searchInput = document.getElementById('search-input');
+
+        // CONFIGURACIÓN DE TMDb
+        const TMDB_API_KEY = "6b08760aef7b20713371d73d461c9c57"; 
+        const TMDB_API_URL = "https://api.themoviedb.org/3";
+        
+        const searchInput = document.getElementById('movie-search');
+        const searchButton = document.getElementById('search-button');
+        const resultsList = document.getElementById('results-list');
+        const saveMovieButton = document.getElementById('save-movie-button');
+        const movieList = document.getElementById('movie-list');
+        const movieListSearchInput = document.getElementById('movie-list-search');
+
+        const movieIdInput = document.getElementById('movie-id');
+        const titleInput = document.getElementById('title');
+        const posterInput = document.getElementById('poster_url');
+        const backdropInput = document.getElementById('backdrop_url');
+        const overviewInput = document.getElementById('overview');
+        const releaseDateInput = document.getElementById('release_date');
+        const genresInput = document.getElementById('genres');
+        const videoUrlInput = document.getElementById('video_url');
 
         let allMovies = [];
-        let categories = ["Todos"];
 
         async function authenticateUser() {
             try {
                 await signInAnonymously(auth);
                 console.log("Usuario autenticado anónimamente.");
+                loadMoviesForAdmin();
             } catch (error) {
                 console.error("Error al autenticar:", error);
             }
         }
 
-        async function fetchMovies() {
+        async function loadMoviesForAdmin() {
             try {
                 const moviesCol = collection(db, "peliculas");
-                const movieSnapshot = await getDocs(moviesCol);
-                allMovies = movieSnapshot.docs.map(doc => doc.data());
-
-                const allGenres = new Set(allMovies.flatMap(movie => movie.generos));
-                categories = ["Todos", ...Array.from(allGenres).sort()];
-                renderCategories();
-                renderMovies(allMovies);
+                const moviesSnapshot = await getDocs(moviesCol);
+                allMovies = moviesSnapshot.docs.map(doc => ({ ...doc.data(), firebaseId: doc.id }));
+                renderAdminMovies(allMovies);
             } catch (e) {
-                console.error("Error al cargar películas:", e);
-                movieGrid.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Error al cargar películas. Revisa tu conexión a Firebase.</p>';
+                console.error("Error al cargar las películas para el admin:", e);
+                movieList.innerHTML = '<p>Error al cargar las películas.</p>';
             }
         }
 
-        function renderCategories() {
-            categoriesSection.innerHTML = '';
-            categories.forEach(cat => {
-                const categoryItem = document.createElement('div');
-                categoryItem.className = `category-item ${cat === "Todos" ? 'active' : ''}`;
-                categoryItem.textContent = cat;
-                categoryItem.dataset.category = cat;
-                categoryItem.addEventListener('click', () => {
-                    document.querySelectorAll('.category-item').forEach(item => item.classList.remove('active'));
-                    categoryItem.classList.add('active');
-                    filterMoviesByCategory(cat);
-                });
-                categoriesSection.appendChild(categoryItem);
-            });
-        }
-        
-        function filterMoviesByCategory(category) {
-            let filteredMovies = [];
-            if (category === "Todos") {
-                filteredMovies = allMovies;
-            } else {
-                filteredMovies = allMovies.filter(movie => movie.generos.includes(category));
-            }
-            renderMovies(filteredMovies);
-        }
-
-        function renderMovies(movies) {
-            movieGrid.innerHTML = '';
-            if (movies.length === 0) {
-                movieGrid.innerHTML = '<p style="text-align: center; color: var(--text-muted);">No se encontraron películas.</p>';
+        function renderAdminMovies(moviesToRender) {
+            movieList.innerHTML = '';
+            if (moviesToRender.length === 0) {
+                movieList.innerHTML = '<p>No se encontraron películas que coincidan con la búsqueda.</p>';
                 return;
             }
-            movies.forEach(movie => {
-                const movieCard = document.createElement('div');
-                movieCard.className = 'movie-card';
-                movieCard.innerHTML = `
-                    <img src="${movie.poster_url}" alt="${movie.titulo} Poster" onerror="this.src='https://via.placeholder.com/120x180?text=No+IMG'"/>
-                    <div class="movie-info">
-                        <h3>${movie.titulo}</h3>
-                        <p>${movie.fecha_lanzamiento ? movie.fecha_lanzamiento.substring(0, 4) : 'N/A'}</p>
+            moviesToRender.forEach(movie => {
+                const item = document.createElement('div');
+                item.className = 'movie-list-item';
+                item.innerHTML = `
+                    <span>${movie.titulo}</span>
+                    <div>
+                        <button class="edit-btn" data-id="${movie.id}">Editar</button>
+                        <button class="delete-btn" data-id="${movie.id}">Eliminar</button>
                     </div>
                 `;
-                // NUEVO: Redirige a la página de sinopsis en lugar de reproducir
-                movieCard.addEventListener('click', () => {
-                    window.location.href = `sinopsis-pelicula.html?id=${movie.id}`;
-                });
-                movieGrid.appendChild(movieCard);
+                movieList.appendChild(item);
+            });
+            document.querySelectorAll('.edit-btn').forEach(button => {
+                button.addEventListener('click', (e) => editMovie(e.target.dataset.id));
+            });
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', (e) => deleteMovie(e.target.dataset.id));
             });
         }
         
-        searchInput.addEventListener('input', () => {
-            const query = searchInput.value.toLowerCase();
+        function editMovie(id) {
+            const movieToEdit = allMovies.find(movie => movie.id === id);
+            if (movieToEdit) {
+                movieIdInput.value = movieToEdit.id;
+                titleInput.value = movieToEdit.titulo;
+                posterInput.value = movieToEdit.poster_url;
+                backdropInput.value = movieToEdit.backdrop_url;
+                overviewInput.value = movieToEdit.sinopsis;
+                releaseDateInput.value = movieToEdit.fecha_lanzamiento;
+                genresInput.value = movieToEdit.generos ? movieToEdit.generos.join(', ') : '';
+                videoUrlInput.value = movieToEdit.video_url || '';
+                saveMovieButton.textContent = 'Actualizar Película';
+            }
+        }
+
+        async function deleteMovie(id) {
+            if (confirm('¿Estás seguro de que quieres eliminar esta película?')) {
+                try {
+                    const movieToDelete = allMovies.find(movie => movie.id === id);
+                    if (movieToDelete) {
+                        const docRef = doc(db, "peliculas", movieToDelete.firebaseId);
+                        await deleteDoc(docRef);
+                        alert("Película eliminada con éxito.");
+                        loadMoviesForAdmin();
+                    }
+                } catch (e) {
+                    console.error("Error al eliminar película:", e);
+                    alert("Error al eliminar la película.");
+                }
+            }
+        }
+
+        movieListSearchInput.addEventListener('input', () => {
+            const query = movieListSearchInput.value.toLowerCase();
             const filteredMovies = allMovies.filter(movie => 
                 movie.titulo.toLowerCase().includes(query)
             );
-            renderMovies(filteredMovies);
+            renderAdminMovies(filteredMovies);
         });
 
-        authenticateUser().then(() => {
-            fetchMovies();
+        searchButton.addEventListener('click', async () => {
+            const query = searchInput.value;
+            if (query.length < 3) return;
+            const url = `${TMDB_API_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&language=es-MX`;
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                resultsList.innerHTML = '';
+                if (data.results && data.results.length > 0) {
+                    data.results.forEach(movie => {
+                        const li = document.createElement('li');
+                        li.className = 'result-item';
+                        li.innerHTML = `
+                            <img src="https://image.tmdb.org/t/p/w92${movie.poster_path}" onerror="this.src='https://via.placeholder.com/50x75?text=No+IMG'"/>
+                            <span>${movie.title} (${movie.release_date ? movie.release_date.substring(0, 4) : 'N/A'})</span>
+                            <button data-id="${movie.id}">Seleccionar</button>
+                        `;
+                        li.querySelector('button').addEventListener('click', async () => {
+                             await fillFormWithMovieData(movie.id);
+                             resultsList.innerHTML = '';
+                        });
+                        resultsList.appendChild(li);
+                    });
+                } else {
+                    resultsList.innerHTML = '<li style="text-align: center;">No se encontraron resultados.</li>';
+                }
+            } catch (error) {
+                console.error('Error al buscar películas:', error);
+            }
         });
+
+        async function fillFormWithMovieData(movieId) {
+            const movieUrl = `${TMDB_API_URL}/movie/${movieId}?api_key=${TMDB_API_KEY}&language=es-MX`;
+            try {
+                const response = await fetch(movieUrl);
+                const movie = await response.json();
+                movieIdInput.value = movie.id;
+                titleInput.value = movie.title;
+                posterInput.value = `https://image.tmdb.org/t/p/w500${movie.poster_path}`;
+                backdropInput.value = `https://image.tmdb.org/t/p/w1280${movie.backdrop_path}`;
+                overviewInput.value = movie.overview;
+                releaseDateInput.value = movie.release_date;
+                const genreNames = movie.genres.map(g => g.name).join(', ');
+                genresInput.value = genreNames;
+            } catch (e) {
+                console.error("Error al obtener detalles de la película:", e);
+                alert("No se pudieron cargar los detalles de la película.");
+            }
+        }
+
+        saveMovieButton.addEventListener('click', async () => {
+            const newMovie = {
+                id: movieIdInput.value,
+                titulo: titleInput.value,
+                poster_url: posterInput.value,
+                backdrop_url: backdropInput.value,
+                sinopsis: overviewInput.value,
+                fecha_lanzamiento: releaseDateInput.value,
+                generos: genresInput.value.split(',').map(g => g.trim()),
+                video_url: videoUrlInput.value,
+            };
+            if (!newMovie.titulo || !newMovie.poster_url) {
+                alert("El título y la URL del póster son obligatorios.");
+                return;
+            }
+            try {
+                const movieRef = doc(db, "peliculas", newMovie.id);
+                await setDoc(movieRef, newMovie);
+                alert("Película guardada con éxito.");
+                movieIdInput.value = '';
+                titleInput.value = '';
+                posterInput.value = '';
+                backdropInput.value = '';
+                overviewInput.value = '';
+                releaseDateInput.value = '';
+                genresInput.value = '';
+                videoUrlInput.value = '';
+                saveMovieButton.textContent = 'Guardar Película';
+                loadMoviesForAdmin();
+            } catch (e) {
+                console.error("Error al agregar película:", e);
+                alert("Error al guardar la película.");
+            }
+        });
+
+        authenticateUser();
     </script>
 </body>
 </html>
