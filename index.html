@@ -45,7 +45,7 @@
 
         /* Header */
         .header {
-            background-color: var(--dark-card); /* Color cambiado aquí */
+            background-color: var(--dark-card);
             position: sticky;
             top: 0;
             z-index: 100;
@@ -146,11 +146,15 @@
             bottom: 0;
             display: flex;
             flex-direction: column;
-            justify-content: flex-end;
+            justify-content: space-between; /* Para separar los controles del EPG */
             visibility: hidden;
             opacity: 0;
             transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
             z-index: 10;
+        }
+        .video-overlay.visible {
+            visibility: visible;
+            opacity: 1;
         }
         .video-container:hover .video-overlay {
             visibility: visible;
@@ -158,9 +162,14 @@
         }
 
         .epg-info {
-            background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0));
-            padding: 20px;
+            background-color: rgba(44, 44, 68, 0.7); /* Fondo semitransparente del color de las tarjetas */
+            padding: 15px;
             color: #fff;
+            position: relative;
+            top: 0; /* Empujar hacia arriba */
+            left: 0;
+            right: 0;
+            z-index: 11;
         }
         .epg-info h3 {
             margin: 0;
@@ -616,6 +625,8 @@
         const volumeSlider = document.getElementById('volumeSlider');
         const progressBarContainer = document.querySelector('.progress-bar-container');
         const volumeSliderContainer = document.querySelector('.volume-slider-container');
+        const videoOverlay = document.querySelector('.video-overlay');
+        const videoContainer = document.querySelector('.video-container');
         
         // Toggle search bar visibility
         searchIcon.addEventListener('click', () => {
@@ -883,6 +894,16 @@
         });
         videoPlayer.addEventListener('pause', () => {
             playPauseBtn.className = 'fas fa-play';
+        });
+        
+        // Control de visibilidad para el overlay y el EPG
+        videoContainer.addEventListener('click', (e) => {
+            // Evitar que el clic en los controles oculte el overlay
+            if (e.target.closest('.video-custom-controls')) {
+                return;
+            }
+            // Toggle de la visibilidad del overlay y los controles EPG
+            videoOverlay.classList.toggle('visible');
         });
     </script>
 </body>
