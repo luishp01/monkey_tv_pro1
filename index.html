@@ -361,6 +361,34 @@
             text-align: center;
             margin-top: 20px;
         }
+
+        /* Media Queries para móviles */
+        @media (max-width: 768px) {
+            .video-custom-controls {
+                padding: 10px; /* Reducir el padding */
+            }
+            .video-custom-controls i {
+                font-size: 1.2em; /* Reducir el tamaño de los íconos */
+            }
+            .video-controls-left {
+                gap: 10px; /* Reducir el espacio entre elementos */
+            }
+            .video-controls-left h3 {
+                font-size: 0.9em; /* Reducir el tamaño del nombre del canal */
+            }
+            .volume-slider-container {
+                width: 60px; /* Reducir el ancho de la barra de volumen */
+            }
+            .time-info {
+                font-size: 0.7em; /* Reducir el tamaño del texto del tiempo */
+            }
+            .search-icon {
+                font-size: 1em; /* Ajuste del icono de búsqueda para móviles */
+            }
+            #search-input.active {
+                width: 150px; /* Ajuste del ancho del input de búsqueda */
+            }
+        }
     </style>
 </head>
 <body>
@@ -405,7 +433,9 @@
                 </div>
             </div>
         </div>
-    </header> <main class="main-content">
+    </header>
+    
+    <main class="main-content">
         <div class="categories-section">
             </div>
         
