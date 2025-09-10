@@ -16,28 +16,70 @@
         #channels-list { list-style: none; padding: 0; }
         .channel-item { background-color: #2c2c44; padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
         .channel-item .actions button { background-color: #e74c3c; color: white; border: none; padding: 5px 10px; cursor: pointer; border-radius: 5px; }
+
+        /* Estilos del formulario de inicio de sesión */
+        #login-form {
+            background-color: #2c2c44;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 400px;
+            margin: 50px auto;
+            text-align: center;
+        }
+        #login-form h2 { margin-bottom: 20px; }
+        #login-form input {
+            width: 90%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            border: 1px solid #555;
+            background-color: #1a1a2e;
+            color: #ecf0f1;
+        }
+        #login-form button {
+            width: 90%;
+            padding: 12px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #login-form button:hover { background-color: #c0392b; }
+        #admin-container { display: none; } /* Ocultar el contenido de admin por defecto */
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Administración de Canales</h1>
         
-        <div id="form-container">
-            <input type="hidden" id="channel-id">
-            <input type="text" id="nombre" placeholder="Nombre del Canal" required>
-            <input type="text" id="m3u8_url" placeholder="URL M3U8" required>
-            <input type="text" id="logo_url" placeholder="URL del Logo">
-            <input type="text" id="categoria" placeholder="Categoría">
-            <input type="text" id="idepg" placeholder="ID EPG">
-            <button id="save-button">Guardar Canal</button>
+        <div id="login-form">
+            <h2>Inicio de Sesión Admin</h2>
+            <input type="email" id="login-email" placeholder="Correo Electrónico" required>
+            <input type="password" id="login-password" placeholder="Contraseña" required>
+            <button id="login-button">Entrar</button>
         </div>
 
-        <ul id="channels-list">
-            </ul>
+        <div id="admin-container">
+            <h1>Administración de Canales</h1>
+            
+            <div id="form-container">
+                <input type="hidden" id="channel-id">
+                <input type="text" id="nombre" placeholder="Nombre del Canal" required>
+                <input type="text" id="m3u8_url" placeholder="URL M3U8" required>
+                <input type="text" id="logo_url" placeholder="URL del Logo">
+                <input type="text" id="categoria" placeholder="Categoría">
+                <input type="text" id="idepg" placeholder="ID EPG">
+                <button id="save-button">Guardar Canal</button>
+            </div>
+
+            <ul id="channels-list">
+                </ul>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, getDocs, addDoc, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         
         // --- CONFIGURACIÓN DE FIREBASE ---
@@ -53,8 +95,15 @@
         // Inicializar Firebase
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
         const canalesRef = collection(db, "canales");
 
+        const loginForm = document.getElementById('login-form');
+        const loginEmail = document.getElementById('login-email');
+        const loginPassword = document.getElementById('login-password');
+        const loginButton = document.getElementById('login-button');
+        const adminContainer = document.getElementById('admin-container');
+        
         const formId = document.getElementById('channel-id');
         const formNombre = document.getElementById('nombre');
         const formM3u8 = document.getElementById('m3u8_url');
@@ -65,7 +114,23 @@
         const channelsList = document.getElementById('channels-list');
         let editId = null;
 
-        // Función para cargar los canales
+        // Lógica de inicio de sesión
+        loginButton.addEventListener('click', async () => {
+            const email = loginEmail.value;
+            const password = loginPassword.value;
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                loginForm.style.display = 'none';
+                adminContainer.style.display = 'block';
+                loadChannels();
+            } catch (error) {
+                console.error("Error al iniciar sesión:", error.message);
+                alert("Error de inicio de sesión. Verifica tu correo y contraseña.");
+            }
+        });
+
+        // --- Funciones para la administración (son las mismas de antes) ---
         async function loadChannels() {
             channelsList.innerHTML = '';
             const snapshot = await getDocs(canalesRef);
@@ -85,13 +150,10 @@
                 `;
                 channelsList.appendChild(li);
             });
-
-            // Eventos para los botones de editar y eliminar
             document.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', editChannel));
             document.querySelectorAll('.delete-btn').forEach(btn => btn.addEventListener('click', deleteChannel));
         }
 
-        // Función para guardar (agregar o editar) un canal
         saveButton.addEventListener('click', async () => {
             const nuevoCanal = {
                 nombre: formNombre.value,
@@ -100,46 +162,32 @@
                 categoria: formCategoria.value,
                 idepg: formIdepg.value
             };
-
             if (editId) {
-                // Editar canal
                 await updateDoc(doc(db, "canales", editId), nuevoCanal);
                 console.log("Canal actualizado con éxito.");
                 editId = null;
                 saveButton.textContent = "Guardar Canal";
             } else {
-                // Agregar nuevo canal
                 await addDoc(canalesRef, nuevoCanal);
                 console.log("Canal agregado con éxito.");
             }
-
-            // Limpiar formulario y recargar lista
-            formNombre.value = '';
-            formM3u8.value = '';
-            formLogo.value = '';
-            formCategoria.value = '';
-            formIdepg.value = '';
+            formNombre.value = ''; formM3u8.value = ''; formLogo.value = '';
+            formCategoria.value = ''; formIdepg.value = '';
             loadChannels();
         });
 
-        // Función para editar
         async function editChannel(e) {
             const id = e.target.dataset.id;
             const docRef = doc(db, "canales", id);
             const docSnap = await getDocs(canalesRef);
             const canal = docSnap.docs.find(d => d.id === id).data();
-
-            formNombre.value = canal.nombre;
-            formM3u8.value = canal.m3u8_url;
-            formLogo.value = canal.logo_url;
-            formCategoria.value = canal.categoria;
+            formNombre.value = canal.nombre; formM3u8.value = canal.m3u8_url;
+            formLogo.value = canal.logo_url; formCategoria.value = canal.categoria;
             formIdepg.value = canal.idepg;
-
             editId = id;
             saveButton.textContent = "Actualizar Canal";
         }
 
-        // Función para eliminar
         async function deleteChannel(e) {
             const id = e.target.dataset.id;
             if (confirm("¿Estás seguro de que quieres eliminar este canal?")) {
@@ -148,10 +196,6 @@
                 loadChannels();
             }
         }
-
-        // Cargar los canales al inicio
-        loadChannels();
     </script>
 </body>
-
 </html>
