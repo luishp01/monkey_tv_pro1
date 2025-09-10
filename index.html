@@ -464,7 +464,7 @@
     
     <script>
         const CAIDO_URL = "https://tvjrflix.appsjr.pro/caido.mp4";
-        const EPG_URL = "https://www.open-epg.com/files/mexico2.xml"; // URL del archivo EPG
+        const EPG_URL = "mexico2.xml"; // URL del archivo EPG
         const channelList = document.querySelector('.channel-list');
         const videoPlayer = document.getElementById('videoPlayer');
         const categoriesDiv = document.querySelector('.categories-section');
@@ -640,14 +640,14 @@
                 videoPlayer.hls = hls;
                 hls.on(Hls.Events.MANIFEST_PARSED, () => {
                     videoPlayer.play().catch(() => {
-                        showMessageBox('?? Canal no disponible. Video alternativo.', 4000);
+                        showMessageBox('🔴 Canal no disponible. Video alternativo.', 4000);
                         videoPlayer.src = CAIDO_URL;
                         videoPlayer.play();
                     });
                 });
                 hls.on(Hls.Events.ERROR, (event, data) => {
                     if (data.fatal) {
-                        showMessageBox('?? Canal no disponible. Video alternativo.', 4000);
+                        showMessageBox('🔴 Canal no disponible. Video alternativo.', 4000);
                         videoPlayer.src = CAIDO_URL;
                         videoPlayer.play();
                     }
@@ -656,7 +656,7 @@
                 videoPlayer.src = finalUrl;
                 videoPlayer.addEventListener('loadedmetadata', () => {
                     videoPlayer.play().catch(() => {
-                        showMessageBox('?? Canal no disponible. Video alternativo.', 4000);
+                        showMessageBox('🔴 Canal no disponible. Video alternativo.', 4000);
                         videoPlayer.src = CAIDO_URL;
                         videoPlayer.play();
                     });
