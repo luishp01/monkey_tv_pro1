@@ -124,7 +124,7 @@
                 loginForm.style.display = 'none';
                 adminContainer.style.display = 'block';
                 loadChannels();
-                setupSaveButton(); // Llama a la nueva función
+                setupSaveButton();
             } catch (error) {
                 console.error("Error al iniciar sesión:", error.message);
                 alert("Error de inicio de sesión. Verifica tu correo y contraseña.");
@@ -168,7 +168,6 @@
                 loadChannels();
             });
         }
-
 
         // --- Funciones para la administración ---
         async function loadChannels() {
