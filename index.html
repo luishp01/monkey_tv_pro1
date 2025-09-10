@@ -27,7 +27,7 @@
             -webkit-font-smoothing: antialiased;
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
+            min-height: 10vh;
         }
         
         /* Message Box */
@@ -470,7 +470,7 @@
                 const [userCredential, channelsSnapshot, epgResponse] = await Promise.all([
                     signInAnonymously(auth),
                     getDocs(collection(db, "canales")),
-                    fetch("https://www.open-epg.com/files/mexico2.xml")
+                    fetch("mexico2.xml")
                 ]);
 
                 userId = userCredential.user.uid;
