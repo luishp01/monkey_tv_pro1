@@ -4,45 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="movie-title-page">Cargando...</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/;
-            overflow: hidden;
-        }
-
-        .backdrop-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            filter: brightness(0.5);
-        }
-
-        .details-overlay {
-            position: absolute;
-            bottom: 0;
-            6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         :root {
             --dark-bg: #1a1a2e;
             --dark-card: #2c2c44;
-            --red-heart: #e74c3c;left: 0;
-            width: 100%;
-            padding: 20px;
-            box-sizing: border-box;
-            background: linear-gradient(to top, var(--dark-bg), transparent);
-        }
-        
-        .details-overlay h1 {
-            margin: 0 0 10px;
-            font-size: 2em;
-        }
-
-        .details-overlay p {
-            margin: 0;
-            font-size: 0.9em;
-            color: var(--text-muted);
-        }
-
-        .play-btn {
-            background-color: var(--
+            --red-heart: #e74c3c;
             --text-light: #ecf0f1;
             --text-muted: #95a5a6;
         }
@@ -51,25 +18,16 @@
             font-family: 'Arial', sans-serif;
             background-color: var(--dark-bg);
             color: var(--text-light);
-            margin: red-main);
-            color: white;
-            border: none;
-            padding: 12px0;
+            margin: 0;
             padding: 0;
             -webkit-font-smoothing: antialiased;
-            /* MEJORA: Espacio para el menú inferior fijo */
             padding-bottom: 70px;
         }
 
         .header {
             display: flex;
             align-items: center;
-            padding: 15px 25px;
-            border-radius: 5px;
-            font-size: 1em;
-            cursor: pointer;
-            margin-top: 15px;
-            transition: background-;
+            padding: 15px;
             background-color: var(--dark-card);
         }
         .header .back-btn {
@@ -77,83 +35,33 @@
             font-size: 1.5em; cursor: pointer; margin-right: 15px;
         }
 
-        .movie-color 0.3s ease;
-        }
-
-        .play-btn:hover {
-            background-color: #details-container {
-            position: relative; width: 100%; height: 50vh; overflowc00812;
-        }
-
-        .synopsis-text {
-            padding: 20px;
-            line-height: 1.6;
-        }
-
-        /* --- Menú Inferior F: hidden;
+        .movie-details-container {
+            position: relative; width: 100%; height: 50vh; overflow: hidden;
         }
         .backdrop-img {
-            width: 100%; height:ijo --- */
-        .bottom-nav {
-            display: flex; justify-content: space-around; align-items: center; height: 60px;
-            background-color: var(--dark-card); border 100%; object-fit: cover; filter: brightness(0.4);
+            width: 100%; height: 100%; object-fit: cover; filter: brightness(0.4);
         }
         .details-overlay {
             position: absolute; bottom: 0; left: 0; width: 100%;
--top: 1px solid rgba(255, 255, 255, 0.1);
-            position: fixed; bottom: 0; left: 0; right: 0; z-            padding: 20px; box-sizing: border-box;
-            background: linear-gradient(to top, rgba(26, 26, 46, 1), rgba(26, 2index: 1000;
-        }
-        .bottom-nav .nav-item {
-            display: flex; flex-direction: column; align-items: center; text-decoration: none;
-            color: var(--text6, 46, 0.5));
+            padding: 20px; box-sizing: border-box;
+            background: linear-gradient(to top, rgba(26, 26, 46, 1), rgba(26, 26, 46, 0.5));
         }
         .details-overlay h1 { margin: 0 0 10px; font-size: 2em; }
-        .details-overlay p {-muted); font-size: 0.7em; text-align: center;
-        }
-        .bottom-nav .nav-item.active { color: var(--red-main); }
-        .bottom-nav .nav margin: 0; font-size: 0.9em; color: var(--text-muted); }
+        .details-overlay p { margin: 0; font-size: 0.9em; color: var(--text-muted); }
         .play-btn {
             background-color: var(--red-heart); color: white; border: none;
-            padding: 12px 25px; border-radius: 50px; font-size: -item i { font-size: 1.4em; margin-bottom: 5px; }
-
-        /* --- NUEVO: REPRODUCTOR PERSONALIZADO --- */
-        #video-player-modal {
-            display: none; /* Oculto por defecto */
-            position: fixed;
-            top: 0; left1em;
-            cursor: pointer; margin-top: 15px; transition: background-color : 0;
-            width: 100%; height: 100%;
-            background: #000;
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        #movie-player {
-            width: 1000.3s ease;
+            padding: 12px 25px; border-radius: 50px; font-size: 1em;
+            cursor: pointer; margin-top: 15px; transition: background-color 0.3s ease;
         }
         .play-btn:hover { background-color: #c0392b; }
 
         .synopsis-text { padding: 20px; line-height: 1.6; }
 
-        /* --- MEJORA: Menú inferior fijo --- */
         .bottom-nav {
             display: flex; justify-content: space-around; align-items: center;
             height: 60px; background-color: var(--dark-card);
-            border-top: 1px solid rgba%;
-            height: 100%;
-        }
-
-        .player-controls-bar {
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
-            padding: 10px 20px;
-            background: linear-gradient(to top, rgba(0,0(255, 255, 255, 0.1);
-            position: fixed; bottom: 0; left: 0; right: 0; z-index: 100,0,0.8), transparent);
-            display: flex;
-            flex-direction: column;
-0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000;
         }
         .bottom-nav .nav-item {
             display: flex; flex-direction: column; align-items: center;
@@ -161,43 +69,17 @@
             font-size: 0.7em; text-align: center;
         }
         .bottom-nav .nav-item.active { color: var(--red-heart); }
-        .bottom-nav .nav            opacity: 1;
-            transition: opacity 0.3s ease-in-out;
-        }
-        
-        .player-controls-bar.controls-hidden {
-            opacity: 0;
-            pointer-events: none-item i { font-size: 1.4em; margin-bottom: 5px; }
+        .bottom-nav .nav-item i { font-size: 1.4em; margin-bottom: 5px; }
 
-        /* --- INICIA EL NUEVO CSS DEL REPRODUCTOR PERSONALIZADO --- */
+        /* --- ESTILOS DEL REPRODUCTOR PERSONALIZADO --- */
         #video-player-modal {
-            ; /* No se puede hacer clic cuando está oculto */
-        }
-        
-        .progress-bar-container {
-            width: 100%; height: 5px; background-color: rgba(255, 255, 255, 0.3);
-            cursor: pointer; margin-bottom: 10px; border-radius: 5px;
-        }
-        .progress-bar {
-            display: none; /* Se activa con JS */
+            display: none;
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
             background: #000;
             z-index: 2000;
             justify-content: center;
-height: 100%; background-color: var(--red-main); width: 0; border-radius: 5px;
-        }
-        
-        .main-controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .controls-left, .controls-right {
-            display: flex;
-            align-items: center;
             align-items: center;
         }
         .player-container {
@@ -209,26 +91,12 @@ height: 100%; background-color: var(--red-main); width: 0; border-radius: 5px;
             width: 100%;
             height: 100%;
         }
-        .            gap: 20px;
-        }
-
-        .control-btn {
-            background: none; border: none; color: white;
-            font-size: 1.5em; cursor: pointer;
-custom-controls-overlay {
+        .custom-controls-overlay {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
             display: flex;
             flex-direction: column;
-        }
-        
-        .time-display {
-            font-size: 0.9em;
-        }
-
-        .close-player-btn {
-            position: absolute;
-            top: 20px;            justify-content: space-between;
+            justify-content: space-between;
             opacity: 1;
             transition: opacity 0.3s ease-in-out;
         }
@@ -242,11 +110,46 @@ custom-controls-overlay {
             padding: 15px;
             background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
         }
-        .controls
-            left: 20px;
-            z-index: 2001;
+        .controls-top .back-btn {
+            background: none; border: none; color: white;
+            font-size: 1.5em; cursor: pointer; margin-right: 15px;
         }
-
+        .controls-top .movie-title-player {
+            font-size: 1.2em;
+        }
+        .controls-bottom {
+            padding: 15px;
+            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+        }
+        .progress-bar-container {
+            width: 100%;
+            height: 5px;
+            background-color: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: var(--red-heart);
+            width: 0%;
+        }
+        .bottom-buttons {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .controls-left, .controls-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .controls-left button, .controls-right button {
+            background: none; border: none; color: white;
+            font-size: 1.5em; cursor: pointer;
+        }
+        .time-display {
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
@@ -261,16 +164,7 @@ custom-controls-overlay {
             <div class="details-overlay">
                 <h1 id="movie-title"></h1>
                 <p id="movie-info"></p>
-                <button id="play-btn" class="play-btn"><i class="fas fa-play"></i> Reprodu-top .back-btn {
-            background: none; border: none; color: white;
-            font-size: 1.5em; cursor: pointer; margin-right: 15px;
-        }
-        .controls-top .movie-title-player {
-            font-size: 1.2em;
-        }
-        .controls-bottom {
-            padding: 15px;
-            background: linear-gradientcir</button>
+                <button id="play-btn" class="play-btn"><i class="fas fa-play"></i> Reproducir</button>
             </div>
         </div>
         <div class="synopsis-text">
@@ -280,132 +174,23 @@ custom-controls-overlay {
 
     <nav class="bottom-nav">
         <a href="index.html" class="nav-item">
-            <i class="fas fa(to top, rgba(0,0,0,0.7), transparent);
-        }
-        .progress-bar-container {
-            width: 100%;
-            height: 5px;
-            background-color: rgba(255, 255, 255, 0.-home"></i> <span>Inicio</span>
+            <i class="fas fa-home"></i> <span>Inicio</span>
         </a>
         <a href="#" class="nav-item">
-            3);
-            cursor: pointer;
-            margin-bottom: 10px;
-        }
-        .progress-bar {
-            height: 100%;
-            background-color: var(--red-heart);
-            width: 0%;
-        }
-        .bottom-buttons {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .controls-left<i class="fas fa-heart"></i> <span>Favoritos</span>
+            <i class="fas fa-heart"></i> <span>Favoritos</span>
         </a>
         <a href="peliculas.html" class="nav-item active">
             <i class="fas fa-film"></i> <span>Películas</span>
         </a>
     </nav>
     
-    <!-- NUEVO: Estructura del reproductor personalizado -->
-    <div id="video-player-modal">
-        <!-- Quitamos el atributo 'controls' para usar los nuestros -->
-        <video id="movie-player"></video>
-
-        <div class="player-controls-bar, .controls-right {
-            display: flex;
-            align-items: center;
-            gap: ">
-            <!-- Barra de progreso -->
-            <div id="progressBarContainer" class="progress-bar-container">
-                20px;
-        }
-        .controls-left button, .controls-right button {
-            background: none; border: none; color: white;
-            font-size: 1.5em; cursor<div id="progressBar" class="progress-bar"></div>
-            </div>
-            <!-- Botones principales -->
-            <div class="main-controls">
-                <div class="controls-left">
-                    <button id: pointer;
-        }
-        .time-display {
-            font-size: 0.9em;
-        }
-        /* --- TERMINA EL NUEVO CSS DEL REPRODUCTOR --- */
-
-    </style>
-</head>
-<body>
-    <header class="header">
-        <button class="back-btn" onclick="window="playPauseBtn" class="control-btn"><i class="fas fa-play"></i></button>
-                    <button id="muteBtn" class="control-btn"><i class="fas fa-volume-up"></i></button.history.back()"><i class="fas fa-arrow-left"></i></button>
-        <h1 id="movie-header-title"></h1>
-    </header>
-
-    <main class="main-content">
-        <div>
-                    <span id="timeDisplay" class="time-display">00:00 / 0 class="movie-details-container">
-            <img id="movie-backdrop" src="" alt="Fondo de la película0:00</span>
-                </div>
-                <div class="controls-right">
-                    <button id="fullscreenBtn" class="control-btn"><i class="fas fa-expand"></i></button>
-                </div>
-            </div>
-        </div>
-        <!-- Botón para cerrar el reproductor -->
-        <button id="closePlayerBtn" class="control-btn close-player-btn"><i class="fas fa-arrow-left"></i></button>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www" class="backdrop-img">
-            <div class="details-overlay">
-                <h1 id="movie-title"></h1>
-                <p id="movie-info"></p>
-                <button id="play-btn" class="play-btn"><i class="fas fa-play"></i> Reproducir</button>
-            </div>
-.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously } from "https://www        </div>
-        <div class="synopsis-text">
-            <p id="movie-synopsis"></p>
-        </div>
-    </main>
-
-    <nav class="bottom-nav">
-        <a href="index.html" class="nav-item">
-            <i class="fas fa-home"></i>.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        
- <span>Inicio</span>
-        </a>
-        <a href="#" class="nav-item">
-            <i class="fas fa-heart"></i> <span>Favoritos</span>
-        </a>
-        <a href="peliculas.html" class="        const firebaseConfig = {
-            apiKey: "AIzaSyCLGiT_UeTm578nav-item active">
-            <i class="fas fa-film"></i> <span>Películas</span>
-        </a>
-    </nav>
-    
-    <!-- INICIA LA NUEVA ESTRUCTURA HTML DEL REPRODUCTOR -->
     <div id="video-player-modal">
         <div class="player-container">
-            <!--cQeCwLldH50qOjounCOs",
-            authDomain: "miappdetv-db.firebaseapp.com",
-            projectId: "miappdetv-db",
-            storageBucket: "miappdetv-db.firebasestorage.app",
-            messagingSenderId: "515 El atributo 'controls' se ha quitado -->
             <video id="movie-player" preload="auto"></video>
             
             <div class="custom-controls-overlay">
                 <div class="controls-top">
-                    <button id="close-player-btn" class="back-btn"><i class="fas fa-arrow-left640857376",
-            appId: "1:515640857376:web:89e5bb051ee79f030c3d45"
-        };
-        const app = initializeApp(firebaseConfig);
-        const db ="></i></button>
+                    <button id="close-player-btn" class="back-btn"><i class="fas fa-arrow-left"></i></button>
                     <span id="movie-title-player" class="movie-title-player"></span>
                 </div>
 
@@ -416,17 +201,9 @@ custom-controls-overlay {
                     <div class="bottom-buttons">
                         <div class="controls-left">
                             <button id="play-pause-btn"><i class="fas fa-play"></i></button>
-                            < getFirestore(app);
-        const auth = getAuth(app);
-
-        // --- Lógica del reproductor ---
-        const playBtn = document.getElementById('play-btn');
-        const videoPlayerModal = document.getElementById('video-button id="mute-btn"><i class="fas fa-volume-up"></i></button>
+                            <button id="mute-btn"><i class="fas fa-volume-up"></i></button>
                             <span class="time-display" id="time-display">00:00 / 00:00</span>
-player-modal');
-        const videoPlayer = document.getElementById('movie-player');
-        const closePlayerBtn = document.getElementById('closePlayerBtn');
-        const playPauseBtn = document.getElementById('playPauseBtn');                        </div>
+                        </div>
                         <div class="controls-right">
                             <button id="fullscreen-btn"><i class="fas fa-expand"></i></button>
                         </div>
@@ -436,67 +213,22 @@ player-modal');
         </div>
     </div>
 
-        const muteBtn = document.getElementById('muteBtn');
-        const fullscreenBtn = document.getElementById('fullscreenBtn');
-        const progressBar = document.getElementById('progressBar');
-        const progressBarContainer = document.getElementById('progressBarContainer');
-        const timeDisplay = document.getElementById('timeDisplay');
-        const controlsBar = document.querySelector('.player-controls-bar');
-        let controlsTimeout;
-
-        async function main() {
-            try {
-                await    <!-- TERMINA LA NUEVA ESTRUCTURA HTML DEL REPRODUCTOR -->
-
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, doc, getDoc } from "https://www.gstatic. signInAnonymously(auth);
-                await loadMovieDetails();
-            } catch (error) {
-                console.error("Error en la inicialización:", error);
-                document.body.innerHTML = '<h1>Error al cargar</h1><p>com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuthNo se pudo autenticar para cargar los detalles.</p>';
-            }
-        }
-
-        async function loadMovieDetails() {
-, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase            const urlParams = new URLSearchParams(window.location.search);
-            const movieId = urlParams.get-auth.js";
+        import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
         const firebaseConfig = {
-            apiKey: "AIzaSyCLGi('id');
-
-            if (!movieId) {
-                document.body.innerHTML = '<h1>Error</h1><p>NoT_UeTm578cQeCwLldH50qOjounCOs",
-            auth se proporcionó un ID de película.</p>';
-                return;
-            }
-
-            try {
-                constDomain: "miappdetv-db.firebaseapp.com",
-            projectId: "miappdetv-db", movieRef = doc(db, "peliculas", movieId);
-                const movieSnap = await getDoc(movieRef);
-
-                
+            apiKey: "AIzaSyCLGiT_UeTm578cQeCwLldH50qOjounCOs",
+            authDomain: "miappdetv-db.firebaseapp.com",
+            projectId: "miappdetv-db",
             storageBucket: "miappdetv-db.firebasestorage.app",
-            messagingSenderif (movieSnap.exists()) {
-                    const movieData = movieSnap.data();
-                    document.getElementById('movie-title-page').textContent = movieData.titulo;
-                    document.getElementById('movie-header-Id: "515640857376",
-            appId: "1:51title').textContent = movieData.titulo;
-                    document.getElementById('movie-backdrop').src = movieData.backdrop_url;
-                    document.getElementById('movie-title').textContent = movieData.titulo;
-                    document5640857376:web:89e5bb051ee79f030c3d45"
+            messagingSenderId: "515640857376",
+            appId: "1:515640857376:web:89e5bb051ee79f030c3d45"
         };
         const app = initializeApp(firebaseConfig);
-        const db.getElementById('movie-info').textContent = `${movieData.fecha_lanzamiento ? movieData.fecha_lanzamiento = getFirestore(app);
+        const db = getFirestore(app);
         const auth = getAuth(app);
-
-        // --- INICIA EL NUE.substring(0, 4) : 'N/A'} | ${movieData.generos.join(', ')}`;
-                    document.getElementById('movie-synopsis').textContent = movieData.sinopsis;
-
-                    playBtn.addEventListenerVO JAVASCRIPT DEL REPRODUCTOR ---
 
         // Elementos de la página principal
         const playBtn = document.getElementById('play-btn');
@@ -505,43 +237,19 @@ player-modal');
         const videoPlayerModal = document.getElementById('video-player-modal');
         const playerContainer = document.querySelector('.player-container');
         const videoPlayer = document.getElementById('movie-player');
-        const customControls = document.querySelector('.custom-controls-('click', () => {
-                        if (movieData.video_url) {
-                            videoPlayer.src = movieoverlay');
+        const customControls = document.querySelector('.custom-controls-overlay');
         const playPauseBtn = document.getElementById('play-pause-btn');
-        const muteBtnData.video_url;
-                            videoPlayerModal.style.display = 'flex';
-                            // Intentamos poner = document.getElementById('mute-btn');
+        const muteBtn = document.getElementById('mute-btn');
         const fullscreenBtn = document.getElementById('fullscreen-btn');
         const closePlayerBtn = document.getElementById('close-player-btn');
         const progressBar = document.getElementById('progress-bar');
         const progressContainer = document.getElementById('progress-container');
-        const timeDisplay =lo en pantalla completa al abrir
-                            enterFullscreen();
-                            videoPlayer.play();
-                        } else {
-                            alert('No se ha proporcionado un enlace de video para esta película.');
-                        }
-                    });
-                } else {
-                    document.body.innerHTML = '<h1>Error</h1><p>Película no encontrada.</p>';
-                }
-            } catch (error) {
-                console.error("Error al cargar detalles:", error);
-                 document.getElementById('time-display');
+        const timeDisplay = document.getElementById('time-display');
 
         let controlsTimeout;
 
         async function authenticateAndLoad() {
-            trydocument.body.innerHTML = '<h1>Error</h1><p>Ocurrió un error al cargar los detalles de la película.</p>';
-            }
-        }
-
-        // --- Funciones del reproductor personalizado ---
-        const formatTime = (time) => {
-            const minutes = Math.floor(time / 60);
-            const seconds = Math.floor(time % 60);
-            return `${String(minutes).padStart(2, '0')}:${String {
+            try {
                 await signInAnonymously(auth);
                 loadMovieDetails();
             } catch (error) {
@@ -550,67 +258,28 @@ player-modal');
             }
         }
 
-(seconds).padStart(2, '0')}`;
-        }
-        
-        function enterFullscreen() {
         async function loadMovieDetails() {
             const urlParams = new URLSearchParams(window.location.search);
             const movieId = urlParams.get('id');
 
             if (!movieId) {
-                document.body.innerHTML =            if (videoPlayerModal.requestFullscreen) videoPlayerModal.requestFullscreen();
-            else if (videoPlayerModal.webkit '<h1>Error</h1><p>No se proporcionó un ID de película.</p>';
+                document.body.innerHTML = '<h1>Error</h1><p>No se proporcionó un ID de película.</p>';
                 return;
             }
 
-RequestFullscreen) videoPlayerModal.webkitRequestFullscreen();
-            else if (videoPlayerModal.msRequestFullscreen) videoPlayerModal.msRequestFullscreen();
-        }
-
-        function exitFullscreen() {
-            if (document.exitFullscreen) document.exitFullscreen();
-            else if (document.webkitExitFullscreen) document.webkitExitFullscreen();            try {
+            try {
                 const movieRef = doc(db, "peliculas", movieId);
                 const movieSnap = await getDoc(movieRef);
 
                 if (movieSnap.exists()) {
-                    const movieData = movieSnap.
-            else if (document.msExitFullscreen) document.msExitFullscreen();
-        }
-
-        playPauseBtn.addEventListener('click', () => {
-            if (videoPlayer.paused) videoPlayer.play();
-            else videodata();
-                    // Llenar datos de la página de sinopsis
-                    document.getElementById('movie-titlePlayer.pause();
-        });
-
-        muteBtn.addEventListener('click', () => { videoPlayer.muted = !videoPlayer.muted; });
-
-        fullscreenBtn.addEventListener('click', () => {
-            if (!document.fullscreenElement-page').textContent = movieData.titulo;
-                    document.getElementById('movie-header-title').textContent =) enterFullscreen();
-            else exitFullscreen();
-        });
-
-        closePlayerBtn.addEventListener('click', () => {
-            videoPlayer.pause();
-            videoPlayer.src = ""; // Detener la descarga
-             movieData.titulo;
+                    const movieData = movieSnap.data();
+                    document.getElementById('movie-title-page').textContent = movieData.titulo;
+                    document.getElementById('movie-header-title').textContent = movieData.titulo;
                     document.getElementById('movie-backdrop').src = movieData.backdrop_url;
                     document.getElementById('movie-title').textContent = movieData.titulo;
-                    document.getElementById('movie-info').videoPlayerModal.style.display = 'none';
-            exitFullscreen();
-        });
-
-        videoPlayer.addEventListenertextContent = `${movieData.fecha_lanzamiento ? movieData.fecha_lanzamiento.substring(0,('play', () => { playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>'; });
-        videoPlayer.addEventListener('pause', () => { playPauseBtn.innerHTML = '<i class="fas fa-play"></i>'; });
-        videoPlayer.addEventListener('volumechange', () => {
-            muteBtn.innerHTML = video 4) : 'N/A'} | ${movieData.generos.join(', ')}`;
+                    document.getElementById('movie-info').textContent = `${movieData.fecha_lanzamiento ? movieData.fecha_lanzamiento.substring(0, 4) : 'N/A'} | ${movieData.generos.join(', ')}`;
                     document.getElementById('movie-synopsis').textContent = movieData.sinopsis;
 
-                    // Preparar el reproductor
                     playBtn.addEventListener('click', () => {
                         if (movieData.video_url) {
                             videoPlayer.src = movieData.video_url;
@@ -627,34 +296,9 @@ RequestFullscreen) videoPlayerModal.webkitRequestFullscreen();
                 }
             } catch (error) {
                 console.error("Error al cargar detalles:", error);
-                document.body.innerHTML = '<h1>Error</h1><p>Ocurrió un error al cargarPlayer.muted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
-        });
-
-        videoPlayer.addEventListener('timeupdate', () => {
-            if (isFinite(videoPlayer.duration)) {
-                const progressPercent = (videoPlayer.currentTime / videoPlayer.duration) * 100;
-                progressBar.style.width = `${progressPercent}%`;
-                timeDisplay.textContent = `${formatTime(videoPlayer.currentTime)} / ${formatTime(videoPlayer.duration)}`;
- los detalles.</p>';
+                document.body.innerHTML = '<h1>Error</h1><p>Ocurrió un error al cargar los detalles.</p>';
             }
         }
-
-        // --- Funciones de los Controles del Reproductor            }
-        });
-        
-        progressBarContainer.addEventListener('click', (e) => {
-            if (isFinite(videoPlayer.duration)) {
-                const rect = progressBarContainer.getBoundingClientRect();
-                const clickPosition = e.clientX - rect.left;
-                videoPlayer.currentTime = (clickPosition / rect.width) * videoPlayer.duration;
-            }
-        });
-        
-        document.addEventListener('fullscreenchange', () => {
-            if (document.fullscreenElement) {
-                fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
-            } else {
-                fullscreenBtn.innerHTML = '<i class="fas fa-expand ---
 
         function togglePlayPause() {
             if (videoPlayer.paused) {
@@ -672,16 +316,7 @@ RequestFullscreen) videoPlayerModal.webkitRequestFullscreen();
 
         function toggleMute() {
             videoPlayer.muted = !videoPlayer.muted;
-        }"></i>';
-                // Si el usuario sale de pantalla completa con ESC, cerramos el reproductor
-                if (videoPlayerModal.style.display === 'flex') {
-                    closePlayerBtn.click();
-                }
-            }
-        });
-        
-        // --- Lógica para ocultar/mostrar controles ---
-        videoPlayer
+        }
         
         function updateMuteIcon() {
             const icon = muteBtn.querySelector('i');
@@ -690,24 +325,80 @@ RequestFullscreen) videoPlayerModal.webkitRequestFullscreen();
         }
 
         function updateProgress() {
-            const progressPercentModal.addEventListener('mousemove', () => {
-            controlsBar.classList.remove('controls-hidden');
-            closePlayerBtn.classList.remove('controls-hidden');
-            clearTimeout(controlsTimeout);
-            controlsTimeout = setTimeout(() = (videoPlayer.currentTime / videoPlayer.duration) * 100;
+            const progressPercent = (videoPlayer.currentTime / videoPlayer.duration) * 100;
             progressBar.style.width = `${progressPercent}%`;
 
-            // Actualizar el tiempo
             const formatTime = (timeInSeconds) => {
                 const minutes = Math.floor(timeInSeconds / 60);
                 const seconds = Math.floor(timeInSeconds % 60);
-                return `${String(minutes).padStart(2, '0')}:${String => {
-                controlsBar.classList.add('controls-hidden');
-                closePlayerBtn.classList.add('controls-hidden');
-            }, 3000); // Se ocultan tras 3 segundos de inactividad
-        });
+                return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            }
+            timeDisplay.textContent = `${formatTime(videoPlayer.currentTime)} / ${formatTime(videoPlayer.duration || 0)}`;
+        }
 
-        main();
+        function setProgress(e) {
+            const progressContainerWidth = progressContainer.clientWidth;
+            const clickPosition = e.offsetX;
+            videoPlayer.currentTime = (clickPosition / progressContainerWidth) * videoPlayer.duration;
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                playerContainer.requestFullscreen().catch(err => {
+                    alert(`No se pudo entrar en pantalla completa: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        function updateFullscreenIcon() {
+            const icon = fullscreenBtn.querySelector('i');
+            icon.classList.toggle('fa-expand', !document.fullscreenElement);
+            icon.classList.toggle('fa-compress', document.fullscreenElement);
+        }
+        
+        function closePlayer() {
+            videoPlayer.pause();
+            videoPlayer.src = "";
+            videoPlayerModal.style.display = 'none';
+            if(document.fullscreenElement) document.exitFullscreen();
+        }
+
+        function showControls() {
+            customControls.classList.remove('hidden');
+            clearTimeout(controlsTimeout);
+            if (!videoPlayer.paused) {
+                controlsTimeout = setTimeout(() => customControls.classList.add('hidden'), 3000);
+            }
+        }
+
+        playPauseBtn.addEventListener('click', togglePlayPause);
+        videoPlayer.addEventListener('click', togglePlayPause);
+        videoPlayer.addEventListener('play', updatePlayPauseIcon);
+        videoPlayer.addEventListener('pause', updatePlayPauseIcon);
+        
+        muteBtn.addEventListener('click', toggleMute);
+        videoPlayer.addEventListener('volumechange', updateMuteIcon);
+
+        videoPlayer.addEventListener('timeupdate', updateProgress);
+        videoPlayer.addEventListener('loadedmetadata', updateProgress);
+        progressContainer.addEventListener('click', setProgress);
+
+        fullscreenBtn.addEventListener('click', toggleFullscreen);
+        document.addEventListener('fullscreenchange', updateFullscreenIcon);
+
+        closePlayerBtn.addEventListener('click', closePlayer);
+
+        playerContainer.addEventListener('mousemove', showControls);
+        playerContainer.addEventListener('mouseleave', () => {
+             if (!videoPlayer.paused) {
+                customControls.classList.add('hidden');
+             }
+        });
+        
+        authenticateAndLoad();
+
     </script>
 </body>
 </html>
