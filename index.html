@@ -575,6 +575,43 @@
                 showMessageBox("Error al eliminar de favoritos.");
             }
         };
+        
+        // Admin Panel: Guardar Canal
+        const saveChannelBtn = document.getElementById('saveChannelBtn');
+        
+        if (saveChannelBtn) {
+            saveChannelBtn.addEventListener('click', async () => {
+                const channelName = document.getElementById('channelNameInput').value;
+                const channelUrl = document.getElementById('channelUrlInput').value;
+                const channelLogo = document.getElementById('channelLogoInput').value;
+                const channelCategory = document.getElementById('channelCategoryInput').value;
+
+                if (!channelName || !channelUrl || !channelLogo || !channelCategory) {
+                    showMessageBox("Por favor, completa todos los campos.");
+                    return;
+                }
+
+                try {
+                    const newChannel = {
+                        nombre: channelName,
+                        m3u8_url: channelUrl,
+                        logo_url: channelLogo,
+                        categoria: channelCategory
+                    };
+                    const docRef = doc(db, "canales", channelName);
+                    await setDoc(docRef, newChannel);
+                    showMessageBox("Canal guardado con éxito!");
+                    // Clear the inputs
+                    document.getElementById('channelNameInput').value = '';
+                    document.getElementById('channelUrlInput').value = '';
+                    document.getElementById('channelLogoInput').value = '';
+                    document.getElementById('channelCategoryInput').value = '';
+                } catch (e) {
+                    console.error("Error al guardar el canal: ", e);
+                    showMessageBox("Error al guardar el canal.");
+                }
+            });
+        }
     </script>
     
     <script>
