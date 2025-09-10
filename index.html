@@ -176,21 +176,67 @@
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* --- INICIA LA MEJORA PARA DISEÑO DE ESCRITORIO CON MENÚ --- */
+        .side-nav {
+            display: none; /* Oculto en móvil por defecto */
+        }
         
         @media (min-width: 992px) {
             body { display: flex; height: 100vh; overflow: hidden; }
             .desktop-layout-container { display: flex; width: 100%; height: 100%; }
+            
             .header {
-                position: relative; width: 65%; height: 100%;
+                position: relative;
+                width: 60%; /* Ajustamos el ancho para dar espacio al menú */
+                height: 100%;
                 display: flex; flex-direction: column;
             }
             .header-top { flex-shrink: 0; }
             .video-container {
                 flex-grow: 1; padding-top: 0; height: auto;
             }
-            .main-content-wrapper {
-                width: 35%; height: 100%; overflow-y: auto; padding-bottom: 0;
+            
+            .right-panel {
+                display: flex;
+                width: 40%; /* El panel derecho ahora tiene el menú y la lista */
+                height: 100%;
             }
+
+            .side-nav {
+                display: flex;
+                flex-direction: column;
+                width: 120px; /* Ancho del nuevo menú lateral */
+                background-color: var(--dark-card);
+                padding-top: 20px;
+                flex-shrink: 0; /* Evita que se encoja */
+            }
+            .side-nav .nav-item {
+                display: flex; flex-direction: column; align-items: center;
+                text-decoration: none; color: var(--text-muted);
+                padding: 15px 0;
+                width: 100%;
+                transition: background-color 0.2s, color 0.2s;
+            }
+            .side-nav .nav-item:hover {
+                background-color: rgba(255, 255, 255, 0.1);
+            }
+            .side-nav .nav-item.active {
+                color: var(--red-heart);
+                border-left: 3px solid var(--red-heart);
+            }
+            .side-nav .nav-item i { font-size: 1.8em; margin-bottom: 8px; }
+            .side-nav .nav-item span { font-size: 0.9em; }
+            .side-nav .nav-item:focus {
+                outline: none;
+                box-shadow: inset 0 0 0 2px var(--red-heart);
+            }
+
+            .main-content-wrapper {
+                width: 100%; /* Ocupa el resto del espacio en el panel derecho */
+                height: 100%; overflow-y: auto; padding-bottom: 0;
+            }
+            
             .bottom-nav { display: none; }
         }
     </style>
@@ -236,17 +282,30 @@
             </div>
         </header>
         
-        <div class="main-content-wrapper">
-            <main class="main-content">
-                <div class="categories-section"></div>
-                <div class="channel-header">
-                    <h2 class="section-title">TODOS</h2>
-                </div>
-                <div id="loading-spinner" class="spinner-container">
-                    <div class="spinner"></div>
-                </div>
-                <ul class="channel-list"></ul>
-            </main>
+        <div class="right-panel">
+            <nav class="side-nav">
+                <a href="index.html" class="nav-item active" data-view="all" tabindex="0">
+                    <i class="fas fa-home"></i> <span>Inicio</span>
+                </a>
+                <a href="#" class="nav-item" data-view="favorites" tabindex="0">
+                    <i class="fas fa-heart"></i> <span>Favoritos</span>
+                </a>
+                <a href="peliculas.html" class="nav-item" tabindex="0">
+                    <i class="fas fa-film"></i> <span>Películas</span>
+                </a>
+            </nav>
+            <div class="main-content-wrapper">
+                <main class="main-content">
+                    <div class="categories-section"></div>
+                    <div class="channel-header">
+                        <h2 class="section-title">TODOS</h2>
+                    </div>
+                    <div id="loading-spinner" class="spinner-container">
+                        <div class="spinner"></div>
+                    </div>
+                    <ul class="channel-list"></ul>
+                </main>
+            </div>
         </div>
 
     </div>
@@ -263,6 +322,7 @@
     </nav>
     
     <script type="module">
+        // --- TU SCRIPT DE FIREBASE COMPLETO ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -308,8 +368,13 @@
             const favoritesRef = collection(db, `users/${userId}/favorites`);
             onSnapshot(favoritesRef, (snapshot) => {
                 window.favoritesList = snapshot.docs.map(doc => doc.id);
-                const currentCategory = document.querySelector('.category-item.active')?.dataset.category || 'TODOS';
-                filterAndRenderChannels(currentCategory);
+                const currentView = document.querySelector('.nav-item.active')?.dataset.view;
+                if (currentView === 'favorites') {
+                    filterAndRenderChannels('FAVORITOS');
+                } else {
+                    const currentCategory = document.querySelector('.category-item.active')?.dataset.category || 'TODOS';
+                    filterAndRenderChannels(currentCategory);
+                }
             });
         }
         
@@ -327,7 +392,7 @@
     </script>
     
     <script>
-        // --- LÓGICA DE CHROMECAST ---
+        // --- LÓGICA DE CHROMECAST COMPLETA ---
         window['__onGCastApiAvailable'] = function(isAvailable) {
             if (isAvailable) {
                 initializeCastApi();
@@ -336,7 +401,7 @@
 
         function initializeCastApi() {
             cast.framework.CastContext.getInstance().setOptions({
-                receiverApplicationId: 'CC1AD845', // ID de prueba de Google
+                receiverApplicationId: 'CC1AD845', 
                 autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
             });
         }
@@ -360,7 +425,7 @@
             );
         }
 
-        // --- LÓGICA DE LA APLICACIÓN ---
+        // --- LÓGICA DE LA APLICACIÓN COMPLETA ---
         const videoPlayer = document.getElementById('videoPlayer');
         const videoPlaceholder = document.querySelector('.video-placeholder');
         const videoOverlay = document.querySelector('.video-overlay');
@@ -388,8 +453,12 @@
 
         function filterAndRenderChannels(category) {
             let channelsToRender;
+            document.querySelector('.categories-section').style.display = 'block';
+            document.querySelector('.channel-header').style.display = 'flex';
             if (category === 'FAVORITOS') {
                 document.querySelector('.section-title').textContent = 'FAVORITOS';
+                document.querySelector('.categories-section').style.display = 'none';
+                document.querySelector('.channel-header').style.display = 'none';
                 channelsToRender = window.allChannelsList.filter(c => window.favoritesList.includes(c.id));
             } else {
                 document.querySelector('.section-title').textContent = category.toUpperCase();
@@ -462,19 +531,25 @@
             videoPlayer.play();
         }
 
+        function handleNavClick(view, element) {
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.querySelectorAll(`[data-view=${view}]`).forEach(el => el.classList.add('active'));
+
+            if (view === 'favorites') {
+                filterAndRenderChannels('FAVORITOS');
+            } else if (view === 'all') {
+                document.querySelector('.categories-section').querySelector('.active')?.classList.remove('active');
+                document.querySelector('.categories-section').querySelector('[data-category="TODOS"]').classList.add('active');
+                filterAndRenderChannels('TODOS');
+            }
+        }
+        
         document.querySelectorAll('.nav-item').forEach(item => {
             item.addEventListener('click', (e) => {
                 const view = item.dataset.view;
                 if (!view) return;
                 e.preventDefault();
-                document.querySelector('.nav-item.active').classList.remove('active');
-                item.classList.add('active');
-                if(view === 'favorites') { filterAndRenderChannels('FAVORITOS'); } 
-                else if (view === 'all') {
-                    categoriesDiv.querySelector('.active')?.classList.remove('active');
-                    categoriesDiv.querySelector('[data-category="TODOS"]').classList.add('active');
-                    filterAndRenderChannels('TODOS');
-                }
+                handleNavClick(view, item);
             });
         });
 
