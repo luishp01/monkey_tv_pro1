@@ -119,6 +119,7 @@
 
         <div id="movie-list-container">
             <h3>Películas Existentes</h3>
+            <input type="text" id="movie-list-search" placeholder="Buscar en películas agregadas...">
             <div id="movie-list">
                 </div>
         </div>
@@ -152,7 +153,8 @@
         const resultsList = document.getElementById('results-list');
         const saveMovieButton = document.getElementById('save-movie-button');
         const movieList = document.getElementById('movie-list');
-        
+        const movieListSearchInput = document.getElementById('movie-list-search'); // NUEVO
+
         const movieIdInput = document.getElementById('movie-id');
         const titleInput = document.getElementById('title');
         const posterInput = document.getElementById('poster_url');
@@ -162,9 +164,8 @@
         const genresInput = document.getElementById('genres');
         const videoUrlInput = document.getElementById('video_url');
 
-        let allMovies = []; // Almacena todas las películas
+        let allMovies = [];
 
-        // Función para autenticar al usuario anónimamente
         async function authenticateUser() {
             try {
                 await signInAnonymously(auth);
@@ -175,27 +176,25 @@
             }
         }
 
-        // Cargar películas para el panel de administración
         async function loadMoviesForAdmin() {
             try {
                 const moviesCol = collection(db, "peliculas");
                 const moviesSnapshot = await getDocs(moviesCol);
                 allMovies = moviesSnapshot.docs.map(doc => ({ ...doc.data(), firebaseId: doc.id }));
-                renderAdminMovies();
+                renderAdminMovies(allMovies); // Renderiza todas las películas al inicio
             } catch (e) {
                 console.error("Error al cargar las películas para el admin:", e);
                 movieList.innerHTML = '<p>Error al cargar las películas.</p>';
             }
         }
 
-        // Renderizar la lista de películas para el admin
-        function renderAdminMovies() {
+        function renderAdminMovies(moviesToRender) {
             movieList.innerHTML = '';
-            if (allMovies.length === 0) {
-                movieList.innerHTML = '<p>No hay películas en la base de datos.</p>';
+            if (moviesToRender.length === 0) {
+                movieList.innerHTML = '<p>No se encontraron películas que coincidan con la búsqueda.</p>';
                 return;
             }
-            allMovies.forEach(movie => {
+            moviesToRender.forEach(movie => {
                 const item = document.createElement('div');
                 item.className = 'movie-list-item';
                 item.innerHTML = `
@@ -207,7 +206,6 @@
                 `;
                 movieList.appendChild(item);
             });
-            // Asignar event listeners a los botones de editar y eliminar
             document.querySelectorAll('.edit-btn').forEach(button => {
                 button.addEventListener('click', (e) => editMovie(e.target.dataset.id));
             });
@@ -216,7 +214,6 @@
             });
         }
         
-        // Editar película
         function editMovie(id) {
             const movieToEdit = allMovies.find(movie => movie.id === id);
             if (movieToEdit) {
@@ -232,7 +229,6 @@
             }
         }
 
-        // Eliminar película
         async function deleteMovie(id) {
             if (confirm('¿Estás seguro de que quieres eliminar esta película?')) {
                 try {
@@ -241,7 +237,7 @@
                         const docRef = doc(db, "peliculas", movieToDelete.firebaseId);
                         await deleteDoc(docRef);
                         alert("Película eliminada con éxito.");
-                        loadMoviesForAdmin(); // Recargar la lista
+                        loadMoviesForAdmin();
                     }
                 } catch (e) {
                     console.error("Error al eliminar película:", e);
@@ -250,9 +246,16 @@
             }
         }
 
-        // Buscar película en TMDb
+        // Event listener para el campo de búsqueda de la lista
+        movieListSearchInput.addEventListener('input', () => {
+            const query = movieListSearchInput.value.toLowerCase();
+            const filteredMovies = allMovies.filter(movie => 
+                movie.titulo.toLowerCase().includes(query)
+            );
+            renderAdminMovies(filteredMovies);
+        });
+
         searchButton.addEventListener('click', async () => {
-            // ... (El resto de la función es la misma que ya tenías)
             const query = searchInput.value;
             if (query.length < 3) return;
             const url = `${TMDB_API_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&language=es-MX`;
@@ -284,7 +287,6 @@
         });
 
         async function fillFormWithMovieData(movieId) {
-            // ... (Esta función es la misma que ya tenías)
             const movieUrl = `${TMDB_API_URL}/movie/${movieId}?api_key=${TMDB_API_KEY}&language=es-MX`;
             try {
                 const response = await fetch(movieUrl);
@@ -322,7 +324,6 @@
                 const movieRef = doc(db, "peliculas", newMovie.id);
                 await setDoc(movieRef, newMovie);
                 alert("Película guardada con éxito.");
-                // Limpiar campos y volver al estado inicial
                 movieIdInput.value = '';
                 titleInput.value = '';
                 posterInput.value = '';
@@ -332,14 +333,13 @@
                 genresInput.value = '';
                 videoUrlInput.value = '';
                 saveMovieButton.textContent = 'Guardar Película';
-                loadMoviesForAdmin(); // Recargar la lista después de guardar
+                loadMoviesForAdmin();
             } catch (e) {
                 console.error("Error al agregar película:", e);
                 alert("Error al guardar la película.");
             }
         });
 
-        // Autenticar y cargar la lista al inicio
         authenticateUser();
     </script>
 </body>
