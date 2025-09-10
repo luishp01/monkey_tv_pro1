@@ -189,6 +189,11 @@
         </a>
     </nav>
 
+    <div id="video-player-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center; flex-direction: column;">
+        <video id="movie-player" controls style="max-width: 90%; max-height: 90%;"></video>
+        <button id="close-player" style="margin-top: 10px; padding: 10px 20px; background-color: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer;">Cerrar</button>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -210,6 +215,9 @@
         const movieGrid = document.querySelector('.movie-grid');
         const categoriesSection = document.querySelector('.categories-section');
         const searchInput = document.getElementById('search-input');
+        const closePlayerButton = document.getElementById('close-player');
+        const videoPlayer = document.getElementById('movie-player');
+        const videoModal = document.getElementById('video-player-modal');
 
         let allMovies = [];
         let categories = ["Todos"];
@@ -281,6 +289,15 @@
                         <p>${movie.fecha_lanzamiento ? movie.fecha_lanzamiento.substring(0, 4) : 'N/A'}</p>
                     </div>
                 `;
+                movieCard.addEventListener('click', () => {
+                    if (movie.video_url) {
+                        videoPlayer.src = movie.video_url;
+                        videoModal.style.display = 'flex';
+                        videoPlayer.play();
+                    } else {
+                        alert('No se ha proporcionado un enlace de video para esta película.');
+                    }
+                });
                 movieGrid.appendChild(movieCard);
             });
         }
@@ -291,6 +308,12 @@
                 movie.titulo.toLowerCase().includes(query)
             );
             renderMovies(filteredMovies);
+        });
+
+        closePlayerButton.addEventListener('click', () => {
+            videoPlayer.pause();
+            videoPlayer.src = ""; // Detiene la carga del video
+            videoModal.style.display = 'none';
         });
 
         authenticateUser().then(() => {
