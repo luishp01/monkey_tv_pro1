@@ -62,8 +62,8 @@
             font-size: 1.2em;
             font-weight: bold;
         }
-
-        /* Estilos para el campo de búsqueda */
+        
+        /* Estilos para el campo de búsqueda movido a la cabecera */
         #search-input {
             width: calc(100% - 20px);
             padding: 10px;
@@ -74,7 +74,7 @@
             color: #ecf0f1;
             box-sizing: border-box;
         }
-        
+
         .video-container {
             position: relative;
             width: 100%;
@@ -351,7 +351,6 @@
             <i class="fas fa-search"></i>
         </div>
         <input type="text" id="search-input" placeholder="Buscar canal...">
-
         <div class="video-container">
             <video id="videoPlayer" class="video-player" autoplay preload="auto"></video>
             
@@ -397,8 +396,7 @@
     
     <main class="main-content">
         <div class="categories-section">
-            <div class="category-item active" data-category="TODOS">TODOS</div>
-        </div>
+            </div>
         
         <div class="channel-header">
             <h2 class="section-title">TODOS</h2>
@@ -439,9 +437,9 @@
         };
         
         let db, auth, userId;
-        let allChannelsList = [];
-        let epgData = null;
-
+        window.allChannelsList = []; // Usamos 'window' para que sea global
+        window.favoritesList = []; // Usamos 'window' para que sea global
+        
         function showMessageBox(message, duration = 3000) {
             const messageBox = document.getElementById('messageBox');
             messageBox.textContent = message;
@@ -451,7 +449,6 @@
             }, duration);
         }
         
-        // Carga de los datos de Firebase
         async function loadAllData() {
             try {
                 document.getElementById('loading-message').style.display = 'block';
@@ -467,16 +464,15 @@
                 userId = userCredential.user.uid;
                 showMessageBox(`Bienvenido, tu ID de usuario es: ${userId}`);
                 
-                allChannelsList = channelsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                window.allChannelsList = channelsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-                if (allChannelsList.length === 0) {
+                if (window.allChannelsList.length === 0) {
                     throw new Error("La base de datos de canales está vacía.");
                 }
 
-                window.categorias = [...new Set(allChannelsList.map(c => c.categoria))];
+                window.categorias = [...new Set(window.allChannelsList.map(c => c.categoria))];
                 renderCategories();
-                window.currentChannels = allChannelsList;
-                renderChannels(allChannelsList, []); 
+                renderChannels(window.allChannelsList, []); 
                 setupListeners();
 
             } catch (e) {
@@ -498,13 +494,15 @@
             onSnapshot(favoritesRef, (snapshot) => {
                 window.favoritesList = snapshot.docs.map(doc => doc.data());
                 
-                // Asegurar que la vista actual se actualice
                 const activeCategoryBtn = document.querySelector('.category-item.active');
                 if (activeCategoryBtn) {
-                    if (activeCategoryBtn.dataset.category === 'TODOS') {
-                        renderChannels(allChannelsList, window.favoritesList);
+                    if (activeCategoryBtn.dataset.category === 'FAVORITOS') {
+                        renderChannels(window.favoritesList, window.favoritesList);
+                    } else if (activeCategoryBtn.dataset.category === 'TODOS') {
+                        const filteredChannels = window.allChannelsList;
+                        renderChannels(filteredChannels, window.favoritesList);
                     } else {
-                        const filteredChannels = allChannelsList.filter(c => c.categoria === activeCategoryBtn.dataset.category);
+                        const filteredChannels = window.allChannelsList.filter(c => c.categoria === activeCategoryBtn.dataset.category);
                         renderChannels(filteredChannels, window.favoritesList);
                     }
                 }
@@ -553,8 +551,6 @@
         const volumeSlider = document.getElementById('volumeSlider');
         const progressBarContainer = document.querySelector('.progress-bar-container');
         const volumeSliderContainer = document.querySelector('.volume-slider-container');
-        
-        let allChannelsList = [];
         
         function showMessageBox(message, duration = 3000) {
             const messageBox = document.getElementById('messageBox');
