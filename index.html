@@ -495,14 +495,16 @@
                 window.favoritesList = snapshot.docs.map(doc => doc.data());
                 
                 const activeCategoryBtn = document.querySelector('.category-item.active');
-                if (activeCategoryBtn) {
-                    if (activeCategoryBtn.dataset.category === 'FAVORITOS') {
-                        renderChannels(window.favoritesList, window.favoritesList);
-                    } else if (activeCategoryBtn.dataset.category === 'TODOS') {
-                        const filteredChannels = window.allChannelsList;
-                        renderChannels(filteredChannels, window.favoritesList);
+                const navItemActive = document.querySelector('.bottom-nav .nav-item.active');
+                
+                if (navItemActive && navItemActive.dataset.view === 'favorites') {
+                    renderChannels(window.favoritesList, window.favoritesList);
+                } else if (activeCategoryBtn) {
+                    const category = activeCategoryBtn.dataset.category;
+                    if (category === 'TODOS') {
+                        renderChannels(window.allChannelsList, window.favoritesList);
                     } else {
-                        const filteredChannels = window.allChannelsList.filter(c => c.categoria === activeCategoryBtn.dataset.category);
+                        const filteredChannels = window.allChannelsList.filter(c => c.categoria === category);
                         renderChannels(filteredChannels, window.favoritesList);
                     }
                 }
@@ -693,11 +695,9 @@
                 item.classList.add('active');
 
                 if (view === 'favorites') {
-                    // Simula una categoría de "FAVORITOS"
                     document.querySelectorAll('.category-item').forEach(btn => btn.classList.remove('active'));
                     renderChannels(window.favoritesList, window.favoritesList);
                 } else if (view === 'all') {
-                    // Al ir a inicio, activa la categoría TODOS y muestra todos los canales
                     document.querySelectorAll('.category-item').forEach(btn => btn.classList.remove('active'));
                     const allCategoryButton = document.querySelector('.category-item[data-category="TODOS"]');
                     if (allCategoryButton) {
