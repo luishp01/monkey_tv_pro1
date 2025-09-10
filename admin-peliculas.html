@@ -88,22 +88,25 @@
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, collection, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-         const firebaseConfig = {
-  apiKey: "AIzaSyCLGiT_UeTm578cQeCwLldH50qOjounCOs",
-  authDomain: "miappdetv-db.firebaseapp.com",
-  databaseURL: "https://miappdetv-db-default-rtdb.firebaseio.com",
-  projectId: "miappdetv-db",
-  storageBucket: "miappdetv-db.firebasestorage.app",
-  messagingSenderId: "515640857376",
-  appId: "1:515640857376:web:89e5bb051ee79f030c3d45"
-};
+        // CONFIGURACIÓN DE FIREBASE
+        const firebaseConfig = {
+          apiKey: "AIzaSyCLGiT_UeTm578cQeCwLldH50qOjounCOs",
+          authDomain: "miappdetv-db.firebaseapp.com",
+          databaseURL: "https://miappdetv-db-default-rtdb.firebaseio.com",
+          projectId: "miappdetv-db",
+          storageBucket: "miappdetv-db.firebasestorage.app",
+          messagingSenderId: "515640857376",
+          appId: "1:515640857376:web:89e5bb051ee79f030c3d45"
+        };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
 
         // CONFIGURACIÓN DE TMDb
-        const TMDB_API_KEY = "6b08760aef7b20713371d73d461c9c57"; // <-- Remplaza con tu API Key de TMDb
+        const TMDB_API_KEY = "6b08760aef7b20713371d73d461c9c57"; 
         const TMDB_API_URL = "https://api.themoviedb.org/3";
         
         const searchInput = document.getElementById('movie-search');
@@ -118,6 +121,19 @@
         const overviewInput = document.getElementById('overview');
         const releaseDateInput = document.getElementById('release_date');
         const genresInput = document.getElementById('genres');
+
+        // Función para autenticar al usuario anónimamente
+        async function authenticateUser() {
+            try {
+                await signInAnonymously(auth);
+                console.log("Usuario autenticado anónimamente.");
+            } catch (error) {
+                console.error("Error al autenticar:", error);
+            }
+        }
+        
+        // Autenticar al usuario al cargar la página
+        authenticateUser();
 
         searchButton.addEventListener('click', async () => {
             const query = searchInput.value;
