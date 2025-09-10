@@ -192,8 +192,9 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-        // Configuración de Firebase
+
         const firebaseConfig = {
             apiKey: "AIzaSyCLGiT_UeTm578cQeCwLldH50qOjounCOs",
             authDomain: "miappdetv-db.firebaseapp.com",
@@ -205,12 +206,22 @@
         
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
         const movieGrid = document.querySelector('.movie-grid');
         const categoriesSection = document.querySelector('.categories-section');
         const searchInput = document.getElementById('search-input');
 
         let allMovies = [];
         let categories = ["Todos"];
+
+        async function authenticateUser() {
+            try {
+                await signInAnonymously(auth);
+                console.log("Usuario autenticado anónimamente.");
+            } catch (error) {
+                console.error("Error al autenticar:", error);
+            }
+        }
 
         async function fetchMovies() {
             try {
@@ -282,7 +293,9 @@
             renderMovies(filteredMovies);
         });
 
-        fetchMovies();
+        authenticateUser().then(() => {
+            fetchMovies();
+        });
     </script>
 </body>
 </html>
