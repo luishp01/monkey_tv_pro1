@@ -414,9 +414,9 @@
             <i class="fas fa-heart"></i>
             <span>Favoritos</span>
         </a>
-        <a href="#" class="nav-item">
-            <i class="fas fa-bell"></i>
-            <span>Notificaciones</span>
+        <a href="epg.html" class="nav-item">
+            <i class="fas fa-tv"></i>
+            <span>Guía</span>
         </a>
     </nav>
     
@@ -553,9 +553,6 @@
         
         let epgData = null; // Variable para almacenar los datos del EPG
         let allChannelsList = []; // Variable para almacenar los canales
-
-        // Las funciones para renderizar, reproducir video, etc., se mantienen sin cambios
-        // pero ahora usan las variables globales `epgData` y `allChannelsList` que son cargadas al inicio.
 
         function showMessageBox(message, duration = 3000) {
             const messageBox = document.getElementById('messageBox');
@@ -829,7 +826,7 @@
                 const view = item.dataset.view;
                 if (view === 'favorites') {
                     filterFavorites();
-                } else {
+                } else if (view === 'all') {
                     renderChannels(allChannelsList, window.favoritesList);
                 }
             });
