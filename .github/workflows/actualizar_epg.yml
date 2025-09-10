@@ -1,0 +1,35 @@
+name: Actualizar Guía EPG
+
+on:
+  schedule:
+    # Se ejecuta a las 2:00 AM todos los días (UTC).
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  descargar_y_subir:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v3
+
+      - name: Descargar el archivo EPG
+        run: |
+          curl -o mexico2.xml https://www.open-epg.com/files/mexico2.xml
+
+      - name: Configurar Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Validar si hay cambios
+        id: git_status
+        run: |
+          git add mexico2.xml
+          echo "hay_cambios=$(git status --porcelain mexico2.xml)" >> $GITHUB_OUTPUT
+
+      - name: Subir el archivo si hay cambios
+        if: steps.git_status.outputs.hay_cambios
+        run: |
+          git commit -m "Actualizar mexico2.xml [bot]"
+          git push
