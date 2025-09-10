@@ -410,6 +410,7 @@
     </header>
 
     <ins class="adsbygoogle"
+         id="adPlaceholder"
          style="display:block; text-align:center;"
          data-ad-client="ca-pub-TU_CLIENTE"
          data-ad-slot="TU_SLOT"
@@ -847,6 +848,19 @@
         videoPlayer.addEventListener('pause', () => {
             playPauseBtn.className = 'fas fa-play';
         });
+
+        // Script para solucionar el espacio en blanco de AdSense
+        const observer = new MutationObserver(() => {
+            const adPlaceholder = document.getElementById('adPlaceholder');
+            if (adPlaceholder.clientHeight === 0) {
+                adPlaceholder.style.display = 'none';
+            } else {
+                adPlaceholder.style.display = 'block';
+            }
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+
     </script>
 </body>
 </html>
