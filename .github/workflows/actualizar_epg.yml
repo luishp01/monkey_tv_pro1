@@ -15,7 +15,7 @@ jobs:
 
       - name: Descargar el archivo EPG
         run: |
-          curl -o mexico2.xml https://www.open-epg.com/files/mexico2.xml
+          curl -sS -o mexico2.xml https://www.open-epg.com/files/mexico2.xml
 
       - name: Configurar Git
         run: |
