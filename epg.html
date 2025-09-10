@@ -185,7 +185,7 @@
             loadingMessage.style.display = 'block';
 
             try {
-                const response = await fetch("https://www.open-epg.com/files/mexico2.xml");
+                const response = await fetch("mexico2.xml");
                 if (!response.ok) {
                     throw new Error("Error de red al cargar el EPG.");
                 }
