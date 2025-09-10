@@ -295,6 +295,23 @@
             font-size: 1.4em;
             margin-bottom: 5px;
         }
+
+        /* Estilos para el campo de búsqueda */
+        #search-input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 10px;
+            border-radius: 20px;
+            border: 1px solid #555;
+            background-color: #2c2c44;
+            color: #ecf0f1;
+            box-sizing: border-box;
+        }
+        #loading-message {
+            text-align: center;
+            margin-top: 20px;
+        }
+
     </style>
 </head>
 <body>
@@ -328,6 +345,8 @@
     </header>
 
     <main class="main-content">
+        <input type="text" id="search-input" placeholder="Buscar canal...">
+
         <div class="categories-section">
             <div class="category-item active" data-category="TODOS">TODOS</div>
         </div>
@@ -335,6 +354,10 @@
         <div class="channel-header">
             <h2 class="section-title">TODOS</h2>
             <span class="select-channel-text">SELECCIONA UN CANAL</span>
+        </div>
+
+        <div id="loading-message" style="text-align:center; margin-top: 20px;">
+            <h3>Cargando canales...</h3>
         </div>
         
         <ul class="channel-list">
@@ -401,8 +424,13 @@
             showMessageBox("Error al inicializar la base de datos.");
         }
         
+        const loadingMessage = document.getElementById('loading-message');
+
         async function loadChannelsFromFirebase() {
             try {
+                // Mostrar el mensaje de carga antes de la llamada a la base de datos
+                loadingMessage.style.display = 'block';
+
                 const canalesRef = collection(db, "canales");
                 const snapshot = await getDocs(canalesRef);
                 const fetchedChannels = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -425,6 +453,9 @@
                 fallbackMessage.style.textAlign = 'center';
                 fallbackMessage.style.padding = '20px';
                 document.querySelector('.channel-list').appendChild(fallbackMessage);
+            } finally {
+                // Ocultar el mensaje de carga después de que la función termine (con éxito o con error)
+                loadingMessage.style.display = 'none';
             }
         }
         
@@ -464,7 +495,7 @@
     
     <script>
         const CAIDO_URL = "https://tvjrflix.appsjr.pro/caido.mp4";
-        const EPG_URL = "mexico2.xml"; // URL del archivo EPG
+        const EPG_URL = "mexico2.xml";
         const channelList = document.querySelector('.channel-list');
         const videoPlayer = document.getElementById('videoPlayer');
         const categoriesDiv = document.querySelector('.categories-section');
@@ -475,7 +506,8 @@
         const fullscreenBtn = document.getElementById('fullscreenBtn');
         const epgCurrentProgram = document.getElementById('epgCurrentProgram');
         const epgNextProgram = document.getElementById('epgNextProgram');
-        
+        const searchInput = document.getElementById('search-input'); // Nuevo
+
         window.allChannelsList = [];
         window.categorias = [];
         window.favoritesList = [];
@@ -486,7 +518,7 @@
             try {
                 const response = await fetch(EPG_URL);
                 if (!response.ok) {
-                    throw new Error(`Error HTTP: ${response.status}`);
+                    throw new Error(`Error de red: ${response.status}`);
                 }
                 const xmlText = await response.text();
                 const parser = new DOMParser();
@@ -494,7 +526,7 @@
                 
                 // Verificar si el parseo fue exitoso
                 if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
-                    throw new Error("Error al analizar el XML de la guía EPG.");
+                    throw new Error("El archivo XML está dañado o no es válido.");
                 }
                 
                 epgData = xmlDoc;
@@ -502,7 +534,13 @@
                 showMessageBox("Guía EPG cargada.");
             } catch (error) {
                 console.error("Error al cargar la guía EPG:", error);
-                showMessageBox("Guía no disponible.");
+                if (error.message.includes("Error de red")) {
+                    showMessageBox("Error: El archivo EPG no se encontró. Verifica el nombre y la ubicación.");
+                } else if (error.message.includes("dañado")) {
+                    showMessageBox("Error: El archivo EPG está dañado.");
+                } else {
+                    showMessageBox("Guía no disponible.");
+                }
             }
         }
         
@@ -640,14 +678,14 @@
                 videoPlayer.hls = hls;
                 hls.on(Hls.Events.MANIFEST_PARSED, () => {
                     videoPlayer.play().catch(() => {
-                        showMessageBox('🔴 Canal no disponible. Video alternativo.', 4000);
+                        showMessageBox('🔴 Canal no disponible. Reproduciendo video alternativo.');
                         videoPlayer.src = CAIDO_URL;
                         videoPlayer.play();
                     });
                 });
                 hls.on(Hls.Events.ERROR, (event, data) => {
                     if (data.fatal) {
-                        showMessageBox('🔴 Canal no disponible. Video alternativo.', 4000);
+                        showMessageBox('🔴 Error en el canal. Reproduciendo video alternativo.');
                         videoPlayer.src = CAIDO_URL;
                         videoPlayer.play();
                     }
@@ -656,7 +694,7 @@
                 videoPlayer.src = finalUrl;
                 videoPlayer.addEventListener('loadedmetadata', () => {
                     videoPlayer.play().catch(() => {
-                        showMessageBox('🔴 Canal no disponible. Video alternativo.', 4000);
+                        showMessageBox('🔴 Canal no disponible. Reproduciendo video alternativo.');
                         videoPlayer.src = CAIDO_URL;
                         videoPlayer.play();
                     });
@@ -729,6 +767,17 @@
                     window.renderChannels(window.allChannelsList, window.favoritesList);
                 }
             });
+        });
+
+        // Lógica para la barra de búsqueda
+        searchInput.addEventListener('input', () => {
+            const query = searchInput.value.toLowerCase();
+            const filteredChannels = window.allChannelsList.filter(channel => 
+                channel.nombre.toLowerCase().includes(query) || 
+                (channel.categoria && channel.categoria.toLowerCase().includes(query))
+            );
+            window.currentChannels = filteredChannels;
+            window.renderChannels(filteredChannels, window.favoritesList);
         });
     </script>
 </body>
