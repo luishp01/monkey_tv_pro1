@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Películas - MonkeyTV PRO</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --dark-bg: #1a1a2e;
+            --dark-card: #2c2c44;
+            --red-heart: #e74c3c;
+            --text-light: #ecf0f1;
+            --text-muted: #95a5a6;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: var(--dark-bg);
+            color: var(--text-light);
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background-color: var(--dark-card);
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 {
+            font-size: 1.5em;
+            margin: 0;
+        }
+        .search-container {
+            position: relative;
+        }
+        #search-input {
+            padding: 8px 15px;
+            border-radius: 20px;
+            border: 1px solid #555;
+            background-color: #1a1a2e;
+            color: #ecf0f1;
+            width: 200px;
+            transition: width 0.3s ease-in-out;
+        }
+        .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+        
+        .main-content {
+            padding: 20px;
+            flex-grow: 1;
+        }
+
+        .categories-section {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            padding: 10px 0;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+        .categories-section::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .category-item {
+            background-color: var(--dark-card);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .category-item.active {
+            background-color: var(--red-heart);
+        }
+
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .movie-card {
+            background-color: var(--dark-card);
+            border-radius: 10px;
+            overflow: hidden;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .movie-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(231, 76, 60, 0.5);
+        }
+        .movie-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+        .movie-info {
+            padding: 10px;
+        }
+        .movie-info h3 {
+            font-size: 0.9em;
+            margin: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .movie-info p {
+            font-size: 0.7em;
+            color: var(--text-muted);
+            margin: 5px 0 0;
+        }
+
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 60px;
+            background-color: var(--dark-card);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .bottom-nav .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.7em;
+            text-align: center;
+        }
+        .bottom-nav .nav-item.active {
+            color: var(--text-light);
+        }
+        .bottom-nav .nav-item i {
+            font-size: 1.4em;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>Películas</h1>
+        <div class="search-container">
+            <input type="text" id="search-input" placeholder="Buscar película...">
+            <i class="fas fa-search search-icon"></i>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="categories-section">
+            <div class="category-item active">Todos</div>
+            <div class="category-item">Acción</div>
+            <div class="category-item">Drama</div>
+            <div class="category-item">Ciencia Ficción</div>
+        </div>
+        
+        <div class="movie-grid">
+            </div>
+    </main>
+
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item">
+            <i class="fas fa-home"></i>
+            <span>Inicio</span>
+        </a>
+        <a href="#" class="nav-item">
+            <i class="fas fa-heart"></i>
+            <span>Favoritos</span>
+        </a>
+        <a href="peliculas.html" class="nav-item active">
+            <i class="fas fa-film"></i>
+            <span>Películas</span>
+        </a>
+    </nav>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLGiT_UeTm578cQeCwLldH50qOjounCOs",
+            authDomain: "miappdetv-db.firebaseapp.com",
+            projectId: "miappdetv-db",
+            storageBucket: "miappdetv-db.firebasestorage.app",
+            messagingSenderId: "515640857376",
+            appId: "1:515640857376:web:89e5bb051ee79f030c3d45"
+        };
+        
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const movieGrid = document.querySelector('.movie-grid');
+        const categoriesSection = document.querySelector('.categories-section');
+        const searchInput = document.getElementById('search-input');
+
+        let allMovies = [];
+        let categories = ["Todos"];
+
+        async function fetchMovies() {
+            try {
+                const moviesCol = collection(db, "peliculas");
+                const movieSnapshot = await getDocs(moviesCol);
+                allMovies = movieSnapshot.docs.map(doc => doc.data());
+
+                const allGenres = new Set(allMovies.flatMap(movie => movie.generos));
+                categories = ["Todos", ...Array.from(allGenres).sort()];
+                renderCategories();
+                renderMovies(allMovies);
+            } catch (e) {
+                console.error("Error al cargar películas:", e);
+                movieGrid.innerHTML = '<p style="text-align: center; color: var(--text-muted);">Error al cargar películas. Revisa tu conexión a Firebase.</p>';
+            }
+        }
+
+        function renderCategories() {
+            categoriesSection.innerHTML = '';
+            categories.forEach(cat => {
+                const categoryItem = document.createElement('div');
+                categoryItem.className = `category-item ${cat === "Todos" ? 'active' : ''}`;
+                categoryItem.textContent = cat;
+                categoryItem.dataset.category = cat;
+                categoryItem.addEventListener('click', () => {
+                    document.querySelectorAll('.category-item').forEach(item => item.classList.remove('active'));
+                    categoryItem.classList.add('active');
+                    filterMoviesByCategory(cat);
+                });
+                categoriesSection.appendChild(categoryItem);
+            });
+        }
+        
+        function filterMoviesByCategory(category) {
+            let filteredMovies = [];
+            if (category === "Todos") {
+                filteredMovies = allMovies;
+            } else {
+                filteredMovies = allMovies.filter(movie => movie.generos.includes(category));
+            }
+            renderMovies(filteredMovies);
+        }
+
+        function renderMovies(movies) {
+            movieGrid.innerHTML = '';
+            if (movies.length === 0) {
+                movieGrid.innerHTML = '<p style="text-align: center; color: var(--text-muted);">No se encontraron películas.</p>';
+                return;
+            }
+            movies.forEach(movie => {
+                const movieCard = document.createElement('div');
+                movieCard.className = 'movie-card';
+                movieCard.innerHTML = `
+                    <img src="${movie.poster_url}" alt="${movie.titulo} Poster" onerror="this.src='https://via.placeholder.com/120x180?text=No+IMG'"/>
+                    <div class="movie-info">
+                        <h3>${movie.titulo}</h3>
+                        <p>${movie.fecha_lanzamiento ? movie.fecha_lanzamiento.substring(0, 4) : 'N/A'}</p>
+                    </div>
+                `;
+                movieGrid.appendChild(movieCard);
+            });
+        }
+        
+        searchInput.addEventListener('input', () => {
+            const query = searchInput.value.toLowerCase();
+            const filteredMovies = allMovies.filter(movie => 
+                movie.titulo.toLowerCase().includes(query)
+            );
+            renderMovies(filteredMovies);
+        });
+
+        fetchMovies();
+    </script>
+</body>
+</html>
