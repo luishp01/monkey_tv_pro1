@@ -26,9 +26,10 @@
             display: flex;
             flex-direction: column;
             min-height: 100vh;
+            /* MEJORA: Espacio en la parte inferior para que el menú fijo no tape el contenido */
+            padding-bottom: 70px;
         }
         
-        /* Message Box */
         #messageBox {
             position: fixed;
             top: 50%;
@@ -38,12 +39,11 @@
             color: white;
             padding: 20px;
             border-radius: 10px;
-            z-index: 1000;
+            z-index: 1001; /* Más alto que el menú */
             display: none;
             text-align: center;
         }
 
-        /* Header */
         .header {
             background-color: var(--dark-card);
             position: sticky;
@@ -63,7 +63,6 @@
             font-weight: bold;
         }
         
-        /* Search container */
         .search-container {
             display: flex;
             align-items: center;
@@ -115,7 +114,6 @@
             object-fit: contain;
         }
 
-        /* Video controls */
         .video-overlay {
             position: absolute;
             top: 0;
@@ -135,7 +133,6 @@
             opacity: 1;
         }
         
-        /* EPG Info */
         .epg-info {
             background-color: rgba(44, 44, 68, 0.7);
             padding: 10px;
@@ -180,7 +177,6 @@
             color: var(--red-heart);
         }
 
-        /* Progress and volume bars */
         .progress-bar-container, .volume-slider-container {
             width: 100%;
             height: 5px;
@@ -207,14 +203,12 @@
             width: 80px;
         }
 
-        /* Main Content */
         .main-content {
             flex-grow: 1;
             padding: 10px;
             overflow-y: auto;
         }
 
-        /* Categories Section */
         .categories-section {
             display: flex;
             overflow-x: auto;
@@ -241,7 +235,6 @@
             background-color: var(--red-heart);
         }
 
-        /* Channel List Header */
         .channel-header {
             display: flex;
             justify-content: space-between;
@@ -275,11 +268,11 @@
             padding: 10px;
             margin-bottom: 10px;
             cursor: pointer;
+            transition: all 0.3s ease;
         }
         .channel-item:hover {
             box-shadow: 0 0 15px rgba(231, 76, 60, 0.5);
             transform: translateY(-2px);
-            transition: all 0.3s ease;
         }
 
         .channel-logo-container {
@@ -329,7 +322,7 @@
             color: var(--text-light);
         }
 
-        /* Bottom Navigation */
+        /* MEJORA: Menú inferior siempre visible */
         .bottom-nav {
             display: flex;
             justify-content: space-around;
@@ -337,6 +330,11 @@
             height: 60px;
             background-color: var(--dark-card);
             border-top: 1px solid rgba(255, 255, 255, 0.1);
+            position: fixed; /* Lo fija en la pantalla */
+            bottom: 0;       /* Lo pega a la parte inferior */
+            left: 0;         /* Asegura que ocupe todo el ancho */
+            right: 0;        /* Asegura que ocupe todo el ancho */
+            z-index: 1000;   /* Se asegura que esté por encima de otros elementos */
         }
 
         .bottom-nav .nav-item {
@@ -350,45 +348,50 @@
         }
 
         .bottom-nav .nav-item.active {
-            color: var(--text-light);
+            color: var(--red-heart);
         }
 
         .bottom-nav .nav-item i {
             font-size: 1.4em;
             margin-bottom: 5px;
         }
-
-        #loading-message {
-            text-align: center;
-            margin-top: 20px;
+        
+        /* MEJORA: Spinner de carga moderno */
+        .spinner-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid var(--red-heart);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
-        /* Media Queries for mobile phones */
+        /* MEJORA: Ajustes para móviles */
         @media (max-width: 768px) {
-            .video-custom-controls {
-                padding: 10px;
-            }
-            .video-custom-controls i {
-                font-size: 1.2em;
-            }
-            .video-controls-left {
-                gap: 10px;
-            }
-            .epg-info h3 {
-                font-size: 1em;
-            }
-            .volume-slider-container {
-                width: 60px;
-            }
-            .time-info {
-                font-size: 0.7em;
-            }
-            .search-icon {
-                font-size: 1em;
-            }
-            #search-input.active {
-                width: 150px;
-            }
+            .video-custom-controls { padding: 10px; }
+            .video-custom-controls i { font-size: 1.2em; }
+            .video-controls-left { gap: 10px; }
+            .epg-info h3 { font-size: 1em; }
+            .volume-slider-container { width: 60px; }
+            .time-info { font-size: 0.7em; }
+            .search-icon { font-size: 1em; }
+            #search-input.active { width: 150px; }
+            
+            /* Ajustes adicionales para la lista de canales */
+            .app-title { font-size: 1.1em; }
+            .channel-item .channel-logo { width: 40px; height: 40px; }
+            .channel-details h3 { font-size: 0.9em; }
+            .channel-details p { font-size: 0.75em; }
         }
     </style>
 </head>
@@ -444,8 +447,9 @@
             <span class="select-channel-text">SELECCIONA UN CANAL</span>
         </div>
 
-        <div id="loading-message" style="text-align:center; margin-top: 20px;">
-            <h3>Cargando canales...</h3>
+        <!-- MEJORA: Indicador de carga con spinner -->
+        <div id="loading-spinner" class="spinner-container">
+            <div class="spinner"></div>
         </div>
         
         <ul class="channel-list">
@@ -497,7 +501,7 @@
         
         async function loadAllData() {
             try {
-                document.getElementById('loading-message').style.display = 'block';
+                document.getElementById('loading-spinner').style.display = 'flex';
                 const app = initializeApp(firebaseConfig);
                 db = getFirestore(app);
                 auth = getAuth(app);
@@ -508,7 +512,6 @@
                 ]);
 
                 userId = userCredential.user.uid;
-                showMessageBox(`Bienvenido, tu ID de usuario es: ${userId}`);
                 
                 window.allChannelsList = channelsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
@@ -529,7 +532,8 @@
                 errorMessage.style.padding = '20px';
                 document.querySelector('.channel-list').appendChild(errorMessage);
             } finally {
-                document.getElementById('loading-message').style.display = 'none';
+                // MEJORA: Ocultar el spinner en lugar del mensaje de texto
+                document.getElementById('loading-spinner').style.display = 'none';
             }
         }
         
@@ -561,7 +565,7 @@
         
         window.addFavorite = async (channel) => {
             try {
-                const docRef = doc(db, `users/${userId}/favorites/${channel.id}`);
+                const docRef = doc(db, `users/${userId}/favorites`, channel.id);
                 await setDoc(docRef, channel);
                 showMessageBox("Canal agregado a favoritos!");
             } catch (e) {
@@ -572,7 +576,7 @@
         
         window.removeFavorite = async (channel) => {
             try {
-                const docRef = doc(db, `users/${userId}/favorites/${channel.id}`);
+                const docRef = doc(db, `users/${userId}/favorites`, channel.id);
                 await deleteDoc(docRef);
                 showMessageBox("Canal eliminado de favoritos.");
             } catch (e) {
@@ -580,43 +584,6 @@
                 showMessageBox("Error al eliminar de favoritos.");
             }
         };
-        
-        // Admin Panel: Guardar Canal
-        const saveChannelBtn = document.getElementById('saveChannelBtn');
-        
-        if (saveChannelBtn) {
-            saveChannelBtn.addEventListener('click', async () => {
-                const channelName = document.getElementById('channelNameInput').value;
-                const channelUrl = document.getElementById('channelUrlInput').value;
-                const channelLogo = document.getElementById('channelLogoInput').value;
-                const channelCategory = document.getElementById('channelCategoryInput').value;
-
-                if (!channelName || !channelUrl || !channelLogo || !channelCategory) {
-                    showMessageBox("Por favor, completa todos los campos.");
-                    return;
-                }
-
-                try {
-                    const newChannel = {
-                        nombre: channelName,
-                        m3u8_url: channelUrl,
-                        logo_url: channelLogo,
-                        categoria: channelCategory
-                    };
-                    const docRef = doc(db, "canales", channelName);
-                    await setDoc(docRef, newChannel);
-                    showMessageBox("Canal guardado con éxito!");
-                    // Clear the inputs
-                    document.getElementById('channelNameInput').value = '';
-                    document.getElementById('channelUrlInput').value = '';
-                    document.getElementById('channelLogoInput').value = '';
-                    document.getElementById('channelCategoryInput').value = '';
-                } catch (e) {
-                    console.error("Error al guardar el canal: ", e);
-                    showMessageBox("Error al guardar el canal.");
-                }
-            });
-        }
     </script>
     
     <script>
@@ -641,7 +608,6 @@
 
         let overlayTimeout;
 
-        // Toggle search bar visibility
         searchIcon.addEventListener('click', () => {
             searchInput.classList.toggle('active');
             if (searchInput.classList.contains('active')) {
@@ -652,17 +618,7 @@
                 renderChannels(window.allChannelsList, window.favoritesList);
             }
         });
-
-        function showMessageBox(message, duration = 3000) {
-            const messageBox = document.getElementById('messageBox');
-            messageBox.textContent = message;
-            messageBox.style.display = 'block';
-            setTimeout(() => {
-                messageBox.style.display = 'none';
-            }, duration);
-        }
         
-        // Render categories
         function renderCategories() {
             categoriesDiv.innerHTML = '';
             
@@ -674,12 +630,12 @@
                 document.querySelectorAll('.category-item').forEach(btn => btn.classList.remove('active'));
                 allButton.classList.add('active');
                 document.querySelector('.section-title').textContent = 'TODOS';
-                document.querySelector('.select-channel-text').textContent = 'SELECCIONA UN CANAL';
                 renderChannels(window.allChannelsList, window.favoritesList);
             });
             categoriesDiv.appendChild(allButton);
 
             window.categorias.forEach(cat => {
+                if (!cat) return; // Omitir categorías vacías
                 const button = document.createElement('div');
                 button.className = 'category-item';
                 button.textContent = cat;
@@ -688,7 +644,6 @@
                     document.querySelectorAll('.category-item').forEach(btn => btn.classList.remove('active'));
                     button.classList.add('active');
                     document.querySelector('.section-title').textContent = cat.toUpperCase();
-                    document.querySelector('.select-channel-text').textContent = 'SELECCIONA UN CANAL';
                     const filteredChannels = window.allChannelsList.filter(c => c.categoria === cat);
                     renderChannels(filteredChannels, window.favoritesList);
                 });
@@ -696,7 +651,6 @@
             });
         }
 
-        // Render channels in the list
         function renderChannels(channels, favorites) {
             channelList.innerHTML = '';
             const favoriteIds = new Set(favorites.map(fav => fav.id));
@@ -717,7 +671,7 @@
                 li.className = 'channel-item';
                 li.innerHTML = `
                     <div class="channel-logo-container">
-                        <img src="${channel.logo_url}" alt="${channel.nombre} Logo" class="channel-logo" onerror="this.onerror=null;this.src='https://placehold.co/50x50/2c2c44/ecf0f1?text=IMG'"/>
+                        <img src="${channel.logo_url}" alt="${channel.nombre} Logo" class="channel-logo" loading="lazy" onerror="this.onerror=null;this.src='https://placehold.co/50x50/2c2c44/ecf0f1?text=IMG'"/>
                         <div class="channel-details">
                             <h3>${channel.nombre}</h3>
                             <p>${channel.categoria}</p>
@@ -761,14 +715,12 @@
                 videoPlayer.hls = hls;
                 hls.on(Hls.Events.MANIFEST_PARSED, () => {
                     videoPlayer.play().catch(() => {
-                        showMessageBox('🔴 Canal no disponible. Reproduciendo video alternativo.');
                         videoPlayer.src = CAIDO_URL;
                         videoPlayer.play();
                     });
                 });
                 hls.on(Hls.Events.ERROR, (event, data) => {
                     if (data.fatal) {
-                        showMessageBox('🔴 Error en el canal. Reproduciendo video alternativo.');
                         videoPlayer.src = CAIDO_URL;
                         videoPlayer.play();
                     }
@@ -777,7 +729,6 @@
                 videoPlayer.src = finalUrl;
                 videoPlayer.addEventListener('loadedmetadata', () => {
                     videoPlayer.play().catch(() => {
-                        showMessageBox('🔴 Canal no disponible. Reproduciendo video alternativo.');
                         videoPlayer.src = CAIDO_URL;
                         videoPlayer.play();
                     });
@@ -789,17 +740,18 @@
             }
         }
 
-        // Improved navigation logic
         navItems.forEach(item => {
             item.addEventListener('click', (e) => {
                 const view = item.dataset.view;
+                if (!view) return; // Si es el enlace a peliculas.html, no hagas nada aquí
+
+                e.preventDefault(); // Previene la navegación si es un enlace #
                 navItems.forEach(nav => nav.classList.remove('active'));
                 item.classList.add('active');
 
                 if (view === 'favorites') {
                     document.querySelectorAll('.category-item').forEach(btn => btn.classList.remove('active'));
                     document.querySelector('.section-title').textContent = 'FAVORITOS';
-                    document.querySelector('.select-channel-text').textContent = 'CANALES GUARDADOS';
                     renderChannels(window.favoritesList, window.favoritesList);
                 } else if (view === 'all') {
                     document.querySelectorAll('.category-item').forEach(btn => btn.classList.remove('active'));
@@ -808,13 +760,11 @@
                         allCategoryButton.classList.add('active');
                     }
                     document.querySelector('.section-title').textContent = 'TODOS';
-                    document.querySelector('.select-channel-text').textContent = 'SELECCIONA UN CANAL';
                     renderChannels(window.allChannelsList, window.favoritesList);
                 }
             });
         });
 
-        // Search bar logic
         searchInput.addEventListener('input', () => {
             const query = searchInput.value.toLowerCase();
             const filteredChannels = window.allChannelsList.filter(channel => 
@@ -824,24 +774,16 @@
             renderChannels(filteredChannels, window.favoritesList);
         });
         
-        // Video controls logic
         playPauseBtn.addEventListener('click', () => {
             if (videoPlayer.paused) {
                 videoPlayer.play();
-                playPauseBtn.className = 'fas fa-pause';
             } else {
                 videoPlayer.pause();
-                playPauseBtn.className = 'fas fa-play';
             }
         });
 
         muteBtn.addEventListener('click', () => {
             videoPlayer.muted = !videoPlayer.muted;
-            if (videoPlayer.muted) {
-                muteBtn.className = 'fas fa-volume-mute';
-            } else {
-                muteBtn.className = 'fas fa-volume-up';
-            }
         });
         
         videoPlayer.addEventListener('volumechange', () => {
@@ -854,58 +796,53 @@
         });
         
         volumeSliderContainer.addEventListener('click', (e) => {
-            const containerWidth = volumeSliderContainer.clientWidth;
-            const clickPosition = e.offsetX;
-            const newVolume = clickPosition / containerWidth;
-            videoPlayer.volume = newVolume;
+            const rect = volumeSliderContainer.getBoundingClientRect();
+            const clickPosition = e.clientX - rect.left;
+            const newVolume = clickPosition / rect.width;
+            videoPlayer.volume = Math.max(0, Math.min(1, newVolume));
         });
 
         videoPlayer.addEventListener('timeupdate', () => {
-            if (videoPlayer.duration) {
+            if (isFinite(videoPlayer.duration)) {
                 const progress = (videoPlayer.currentTime / videoPlayer.duration) * 100;
                 progressBar.style.width = progress + '%';
                 
-                const currentMinutes = Math.floor(videoPlayer.currentTime / 60);
-                const currentSeconds = Math.floor(videoPlayer.currentTime % 60);
-                const durationMinutes = Math.floor(videoPlayer.duration / 60);
-                const durationSeconds = Math.floor(videoPlayer.duration % 60);
+                const formatTime = (time) => {
+                    const minutes = Math.floor(time / 60);
+                    const seconds = Math.floor(time % 60);
+                    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                }
                 
-                const formattedCurrentTime = `${String(currentMinutes).padStart(2, '0')}:${String(currentSeconds).padStart(2, '0')}`;
-                const formattedDuration = `${String(durationMinutes).padStart(2, '0')}:${String(durationSeconds).padStart(2, '0')}`;
-                
-                videoTime.textContent = `${formattedCurrentTime} / ${formattedDuration}`;
+                videoTime.textContent = `${formatTime(videoPlayer.currentTime)} / ${formatTime(videoPlayer.duration)}`;
             } else {
+                // Para streams en vivo sin duración
+                progressBar.style.width = '100%';
                 const currentMinutes = Math.floor(videoPlayer.currentTime / 60);
                 const currentSeconds = Math.floor(videoPlayer.currentTime % 60);
                 const formattedTime = `${String(currentMinutes).padStart(2, '0')}:${String(currentSeconds).padStart(2, '0')}`;
-                videoTime.textContent = `${formattedTime}`;
+                videoTime.textContent = `En vivo: ${formattedTime}`;
             }
         });
         
         progressBarContainer.addEventListener('click', (e) => {
-            if (videoPlayer.duration) {
-                const containerWidth = progressBarContainer.clientWidth;
-                const clickPosition = e.offsetX;
-                const newTime = (clickPosition / containerWidth) * videoPlayer.duration;
+            if (isFinite(videoPlayer.duration)) {
+                const rect = progressBarContainer.getBoundingClientRect();
+                const clickPosition = e.clientX - rect.left;
+                const newTime = (clickPosition / rect.width) * videoPlayer.duration;
                 videoPlayer.currentTime = newTime;
             }
         });
 
-        // Hide overlay after a few seconds of inactivity
         function hideOverlay() {
             clearTimeout(overlayTimeout);
             overlayTimeout = setTimeout(() => {
                 videoOverlay.classList.remove('visible');
-            }, 3000); // Oculta después de 3 segundos
+            }, 3000);
         }
         
-        // Toggle visibility for overlay on click
         videoContainer.addEventListener('click', (e) => {
-            // Check if the click is on an interactive element
-            if (e.target.closest('.video-custom-controls') || e.target.closest('.epg-info')) {
-                return;
-            }
-            // If the video overlay is visible, hide it, otherwise, show it
+            if (e.target.closest('.video-custom-controls') || e.target.closest('.epg-info')) return;
+            
             if (videoOverlay.classList.contains('visible')) {
                 videoOverlay.classList.remove('visible');
                 clearTimeout(overlayTimeout);
@@ -915,37 +852,26 @@
             }
         });
 
-        // Toggle fullscreen
         fullscreenBtn.addEventListener('click', () => {
-            if (document.fullscreenElement) {
+            if (!document.fullscreenElement) {
+                videoContainer.requestFullscreen().catch(err => {
+                    alert(`Error al intentar entrar en pantalla completa: ${err.message} (${err.name})`);
+                });
+            } else {
                 document.exitFullscreen();
-            } else if (videoPlayer.requestFullscreen) {
-                videoPlayer.requestFullscreen();
-            } else if (videoPlayer.webkitRequestFullscreen) {
-                videoPlayer.webkitRequestFullscreen();
-            } else if (videoPlayer.msRequestFullscreen) {
-                videoPlayer.msRequestFullscreen();
             }
         });
         
-        // Change the fullscreen button icon
         document.addEventListener('fullscreenchange', () => {
             if (document.fullscreenElement) {
-                fullscreenBtn.classList.remove('fa-expand');
-                fullscreenBtn.classList.add('fa-compress');
+                fullscreenBtn.classList.replace('fa-expand', 'fa-compress');
             } else {
-                fullscreenBtn.classList.remove('fa-compress');
-                fullscreenBtn.classList.add('fa-expand');
+                fullscreenBtn.classList.replace('fa-compress', 'fa-expand');
             }
         });
 
-        videoPlayer.addEventListener('play', () => {
-            playPauseBtn.className = 'fas fa-pause';
-        });
-        videoPlayer.addEventListener('pause', () => {
-            playPauseBtn.className = 'fas fa-play';
-        });
+        videoPlayer.addEventListener('play', () => { playPauseBtn.className = 'fas fa-pause'; });
+        videoPlayer.addEventListener('pause', () => { playPauseBtn.className = 'fas fa-play'; });
     </script>
 </body>
 </html>
-
