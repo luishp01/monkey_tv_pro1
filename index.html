@@ -27,7 +27,7 @@
             -webkit-font-smoothing: antialiased;
             display: flex;
             flex-direction: column;
-            min-height: 10vh;
+            min-height: 100vh;
         }
         
         /* Message Box */
@@ -71,7 +71,7 @@
         .video-container {
             position: relative;
             width: 100%;
-            /* Ajuste para que el reproductor no ocupe toda la pantalla */
+            height: auto;
             max-height: 50vh; 
             overflow: hidden;
             background-color: #000;
@@ -183,6 +183,7 @@
         .main-content {
             flex-grow: 1;
             padding: 10px;
+            overflow-y: auto;
         }
 
         /* Categories Section */
@@ -359,7 +360,7 @@
             
             <div class="video-overlay">
                 <div class="epg-info">
-                    <h3 id="epgCurrentProgram">Cargando Guía...</h3>
+                    <h3 id="epgCurrentProgram">Canal en vivo</h3>
                     <p id="epgNextProgram"></p>
                 </div>
                 <div id="videoControls" class="video-custom-controls">
@@ -427,7 +428,7 @@
             <i class="fas fa-heart"></i>
             <span>Favoritos</span>
         </a>
-        </nav>
+    </nav>
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -464,26 +465,15 @@
                 db = getFirestore(app);
                 auth = getAuth(app);
                 
-                const [userCredential, channelsSnapshot, epgResponse] = await Promise.all([
+                const [userCredential, channelsSnapshot] = await Promise.all([
                     signInAnonymously(auth),
-                    getDocs(collection(db, "canales")),
-                    fetch("mexico2.xml")
+                    getDocs(collection(db, "canales"))
                 ]);
 
                 userId = userCredential.user.uid;
                 showMessageBox(`Bienvenido, tu ID de usuario es: ${userId}`);
                 
                 allChannelsList = channelsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                
-                if (!epgResponse.ok) {
-                    throw new Error("Error de red al cargar el EPG.");
-                }
-                const epgText = await epgResponse.text();
-                const parser = new DOMParser();
-                epgData = parser.parseFromString(epgText, "text/xml");
-                if (epgData.getElementsByTagName("parsererror").length > 0) {
-                    throw new Error("El archivo XML del EPG está dañado.");
-                }
 
                 if (allChannelsList.length === 0) {
                     throw new Error("La base de datos de canales está vacía.");
@@ -492,12 +482,13 @@
                 window.categorias = [...new Set(allChannelsList.map(c => c.categoria))];
                 renderCategories();
                 window.currentChannels = allChannelsList;
+                renderChannels(allChannelsList, []); // Renderiza los canales iniciales
                 setupListeners();
 
             } catch (e) {
                 console.error('Error al cargar datos:', e);
                 const errorMessage = document.createElement('li');
-                errorMessage.textContent = 'Error al cargar los datos. Revisa tu conexión a Firebase o el archivo EPG.';
+                errorMessage.textContent = 'Error al cargar los datos. Revisa tu conexión a Firebase.';
                 errorMessage.style.textAlign = 'center';
                 errorMessage.style.padding = '20px';
                 document.querySelector('.channel-list').appendChild(errorMessage);
@@ -512,7 +503,16 @@
             const favoritesRef = collection(db, `users/${userId}/favorites`);
             onSnapshot(favoritesRef, (snapshot) => {
                 window.favoritesList = snapshot.docs.map(doc => doc.data());
-                renderChannels(window.currentChannels, window.favoritesList);
+                // Re-renderiza con la lista de favoritos actualizada
+                const activeCategory = document.querySelector('.category-item.active');
+                if (activeCategory.dataset.category === 'TODOS') {
+                    renderChannels(allChannelsList, window.favoritesList);
+                } else if (activeCategory.dataset.category === 'FAVORITOS') {
+                    renderChannels(window.favoritesList, window.favoritesList);
+                } else {
+                    const filteredChannels = allChannelsList.filter(c => c.categoria === activeCategory.dataset.category);
+                    renderChannels(filteredChannels, window.favoritesList);
+                }
             }, (error) => {
                 console.error("Error al obtener los favoritos:", error);
             });
@@ -560,10 +560,8 @@
         const progressBarContainer = document.querySelector('.progress-bar-container');
         const volumeSliderContainer = document.querySelector('.volume-slider-container');
         
-        let epgData = null;
         let allChannelsList = [];
-        let currentChannels = [];
-
+        
         function showMessageBox(message, duration = 3000) {
             const messageBox = document.getElementById('messageBox');
             messageBox.textContent = message;
@@ -573,67 +571,18 @@
             }, duration);
         }
         
-        function updateEpgDisplay(idepg) {
-            if (!epgData || !idepg) {
-                epgCurrentProgram.textContent = "Guía no disponible.";
-                epgNextProgram.textContent = "";
-                return;
-            }
-
-            const channelElement = epgData.querySelector(`channel[id="${idepg}"]`);
-            if (!channelElement) {
-                epgCurrentProgram.textContent = "Sin información EPG para este canal.";
-                epgNextProgram.textContent = "";
-                return;
-            }
-
-            const programs = channelElement.querySelectorAll('programme');
-            const now = new Date();
-            let currentProgram = null;
-            let nextProgram = null;
-
-            programs.forEach(program => {
-                const startStr = program.getAttribute('start').substring(0, 14);
-                const endStr = program.getAttribute('stop').substring(0, 14);
-                
-                const start = new Date(startStr.substring(0, 4) + '-' + startStr.substring(4, 6) + '-' + startStr.substring(6, 8) + 'T' + startStr.substring(8, 10) + ':' + startStr.substring(10, 12) + ':' + startStr.substring(12, 14));
-                const end = new Date(endStr.substring(0, 4) + '-' + endStr.substring(4, 6) + '-' + endStr.substring(6, 8) + 'T' + endStr.substring(8, 10) + ':' + endStr.substring(10, 12) + ':' + endStr.substring(12, 14));
-                
-                if (now >= start && now < end) {
-                    currentProgram = program;
-                } else if (now < start && !nextProgram) {
-                    nextProgram = program;
-                }
-            });
-
-            if (currentProgram) {
-                const title = currentProgram.querySelector('title').textContent;
-                const start = currentProgram.getAttribute('start').substring(8, 12);
-                const end = currentProgram.getAttribute('stop').substring(8, 12);
-                epgCurrentProgram.textContent = `${title} (${start.substring(0, 2)}:${start.substring(2, 4)} - ${end.substring(0, 2)}:${end.substring(2, 4)})`;
-            } else {
-                epgCurrentProgram.textContent = "Sin programa actual.";
-            }
-
-            if (nextProgram) {
-                const nextTitle = nextProgram.querySelector('title').textContent;
-                const nextStart = nextProgram.getAttribute('start').substring(8, 12);
-                epgNextProgram.textContent = `Siguiente: ${nextTitle} (${nextStart.substring(0, 2)}:${nextStart.substring(2, 4)})`;
-            } else {
-                epgNextProgram.textContent = "No hay información del siguiente programa.";
-            }
-        }
-
+        // Función para renderizar las categorías
         function renderCategories() {
             categoriesDiv.innerHTML = '';
+            
             const allButton = document.createElement('div');
             allButton.className = 'category-item active';
             allButton.textContent = 'TODOS';
+            allButton.dataset.category = 'TODOS';
             allButton.addEventListener('click', () => {
                 document.querySelectorAll('.category-item').forEach(btn => btn.classList.remove('active'));
                 allButton.classList.add('active');
-                currentChannels = allChannelsList;
-                renderChannels(currentChannels, window.favoritesList);
+                renderChannels(allChannelsList, window.favoritesList);
             });
             categoriesDiv.appendChild(allButton);
 
@@ -641,20 +590,31 @@
                 const button = document.createElement('div');
                 button.className = 'category-item';
                 button.textContent = cat;
+                button.dataset.category = cat;
                 button.addEventListener('click', () => {
                     document.querySelectorAll('.category-item').forEach(btn => btn.classList.remove('active'));
                     button.classList.add('active');
-                    currentChannels = allChannelsList.filter(c => c.categoria === cat);
-                    renderChannels(currentChannels, window.favoritesList);
+                    const filteredChannels = allChannelsList.filter(c => c.categoria === cat);
+                    renderChannels(filteredChannels, window.favoritesList);
                 });
                 categoriesDiv.appendChild(button);
             });
         }
-        
+
+        // Función para renderizar los canales en la lista
         function renderChannels(channels, favorites) {
             channelList.innerHTML = '';
             const favoriteIds = new Set(favorites.map(fav => fav.id));
             
+            if (channels.length === 0) {
+                 const noChannelsMessage = document.createElement('li');
+                 noChannelsMessage.textContent = 'No hay canales en esta categoría.';
+                 noChannelsMessage.style.textAlign = 'center';
+                 noChannelsMessage.style.padding = '20px';
+                 channelList.appendChild(noChannelsMessage);
+                 return;
+            }
+
             channels.forEach(channel => {
                 const isFavorited = favoriteIds.has(channel.id);
                 
@@ -698,7 +658,8 @@
             channelNameDisplay.textContent = channel.nombre;
             playPauseBtn.className = 'fas fa-pause';
             muteBtn.className = videoPlayer.muted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
-            updateEpgDisplay(channel.idepg);
+            epgCurrentProgram.textContent = channel.nombre;
+            epgNextProgram.textContent = ''; // Limpiar el texto del siguiente programa
 
             if (Hls.isSupported()) {
                 const hls = new Hls();
@@ -735,9 +696,38 @@
             }
         }
 
-        function filterFavorites() {
-            renderChannels(window.favoritesList, window.favoritesList);
-        }
+        // Lógica de navegación mejorada
+        navItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                const view = item.dataset.view;
+                navItems.forEach(nav => nav.classList.remove('active'));
+                item.classList.add('active');
+
+                if (view === 'favorites') {
+                    // Simula una categoría de "FAVORITOS"
+                    document.querySelectorAll('.category-item').forEach(btn => btn.classList.remove('active'));
+                    renderChannels(window.favoritesList, window.favoritesList);
+                } else if (view === 'all') {
+                    // Al ir a inicio, activa la categoría TODOS y muestra todos los canales
+                    document.querySelectorAll('.category-item').forEach(btn => btn.classList.remove('active'));
+                    const allCategoryButton = document.querySelector('.category-item[data-category="TODOS"]');
+                    if (allCategoryButton) {
+                        allCategoryButton.classList.add('active');
+                    }
+                    renderChannels(allChannelsList, window.favoritesList);
+                }
+            });
+        });
+
+        // Lógica para la barra de búsqueda
+        searchInput.addEventListener('input', () => {
+            const query = searchInput.value.toLowerCase();
+            const filteredChannels = allChannelsList.filter(channel => 
+                channel.nombre.toLowerCase().includes(query) || 
+                (channel.categoria && channel.categoria.toLowerCase().includes(query))
+            );
+            renderChannels(filteredChannels, window.favoritesList);
+        });
         
         // --- Lógica para los nuevos controles de video ---
         playPauseBtn.addEventListener('click', () => {
@@ -821,35 +811,6 @@
         });
         videoPlayer.addEventListener('pause', () => {
             playPauseBtn.className = 'fas fa-play';
-        });
-        
-        // Lógica de navegación mejorada
-        navItems.forEach(item => {
-            item.addEventListener('click', (e) => {
-                const view = item.dataset.view;
-                if (view === 'favorites') {
-                    navItems.forEach(nav => nav.classList.remove('active'));
-                    item.classList.add('active');
-                    filterFavorites();
-                } else if (view === 'all') {
-                    navItems.forEach(nav => nav.classList.remove('active'));
-                    item.classList.add('active');
-                    document.querySelectorAll('.category-item').forEach(btn => btn.classList.remove('active'));
-                    document.querySelector('.category-item').classList.add('active');
-                    renderChannels(allChannelsList, window.favoritesList);
-                }
-            });
-        });
-
-        // Lógica para la barra de búsqueda
-        searchInput.addEventListener('input', () => {
-            const query = searchInput.value.toLowerCase();
-            const filteredChannels = allChannelsList.filter(channel => 
-                channel.nombre.toLowerCase().includes(query) || 
-                (channel.categoria && channel.categoria.toLowerCase().includes(query))
-            );
-            currentChannels = filteredChannels;
-            renderChannels(filteredChannels, window.favoritesList);
         });
     </script>
 </body>
