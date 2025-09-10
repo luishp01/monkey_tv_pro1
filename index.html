@@ -71,19 +71,23 @@
         .video-container {
             position: relative;
             width: 100%;
-            height: auto;
-            max-height: 50vh; 
+            /* Ajuste para la proporción 16:9, permite que el video mantenga su relación de aspecto */
+            padding-top: 56.25%; /* 9 / 16 = 0.5625 */
+            height: 0;
             overflow: hidden;
             background-color: #000;
         }
 
         .video-player {
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
             object-fit: contain;
         }
 
-        /* New custom video controls and EPG */
+        /* New custom video controls */
         .video-overlay {
             position: absolute;
             top: 0;
@@ -109,14 +113,9 @@
             color: #fff;
         }
         .epg-info h3 {
-            margin: 0 0 5px 0;
+            margin: 0;
             font-size: 1.2em;
             font-weight: bold;
-        }
-        .epg-info p {
-            margin: 0;
-            font-size: 0.9em;
-            color: var(--text-muted);
         }
 
         .video-custom-controls {
@@ -361,7 +360,6 @@
             <div class="video-overlay">
                 <div class="epg-info">
                     <h3 id="epgCurrentProgram">Canal en vivo</h3>
-                    <p id="epgNextProgram"></p>
                 </div>
                 <div id="videoControls" class="video-custom-controls">
                     <div class="progress-bar-container">
@@ -457,7 +455,7 @@
             }, duration);
         }
         
-        // Carga simultánea de la base de datos y la guía EPG
+        // Carga de los datos de Firebase
         async function loadAllData() {
             try {
                 document.getElementById('loading-message').style.display = 'block';
@@ -482,7 +480,7 @@
                 window.categorias = [...new Set(allChannelsList.map(c => c.categoria))];
                 renderCategories();
                 window.currentChannels = allChannelsList;
-                renderChannels(allChannelsList, []); // Renderiza los canales iniciales
+                renderChannels(allChannelsList, []); 
                 setupListeners();
 
             } catch (e) {
@@ -497,18 +495,16 @@
             }
         }
         
-        loadAllData(); // Llamada inicial para cargar todo
+        loadAllData();
         
         function setupListeners() {
             const favoritesRef = collection(db, `users/${userId}/favorites`);
             onSnapshot(favoritesRef, (snapshot) => {
                 window.favoritesList = snapshot.docs.map(doc => doc.data());
-                // Re-renderiza con la lista de favoritos actualizada
+                
                 const activeCategory = document.querySelector('.category-item.active');
                 if (activeCategory.dataset.category === 'TODOS') {
                     renderChannels(allChannelsList, window.favoritesList);
-                } else if (activeCategory.dataset.category === 'FAVORITOS') {
-                    renderChannels(window.favoritesList, window.favoritesList);
                 } else {
                     const filteredChannels = allChannelsList.filter(c => c.categoria === activeCategory.dataset.category);
                     renderChannels(filteredChannels, window.favoritesList);
@@ -552,7 +548,6 @@
         const muteBtn = document.getElementById('muteBtn');
         const fullscreenBtn = document.getElementById('fullscreenBtn');
         const epgCurrentProgram = document.getElementById('epgCurrentProgram');
-        const epgNextProgram = document.getElementById('epgNextProgram');
         const searchInput = document.getElementById('search-input');
         const progressBar = document.getElementById('progressBar');
         const videoTime = document.getElementById('videoTime');
@@ -659,8 +654,7 @@
             playPauseBtn.className = 'fas fa-pause';
             muteBtn.className = videoPlayer.muted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
             epgCurrentProgram.textContent = channel.nombre;
-            epgNextProgram.textContent = ''; // Limpiar el texto del siguiente programa
-
+            
             if (Hls.isSupported()) {
                 const hls = new Hls();
                 hls.loadSource(finalUrl);
