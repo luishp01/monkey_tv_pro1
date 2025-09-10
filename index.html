@@ -435,6 +435,8 @@
         };
         
         let db, auth, userId;
+        let allChannelsList = [];
+        let epgData = null;
 
         function showMessageBox(message, duration = 3000) {
             const messageBox = document.getElementById('messageBox');
@@ -444,68 +446,64 @@
                 messageBox.style.display = 'none';
             }, duration);
         }
+        
+        // Carga simultánea de la base de datos y la guía EPG
+        async function loadAllData() {
+            try {
+                document.getElementById('loading-message').style.display = 'block';
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                
+                const [userCredential, channelsSnapshot, epgResponse] = await Promise.all([
+                    signInAnonymously(auth),
+                    getDocs(collection(db, "canales")),
+                    fetch("mexico2.xml")
+                ]);
 
-        try {
-            const app = initializeApp(firebaseConfig);
-            db = getFirestore(app);
-            auth = getAuth(app);
-            
-            signInAnonymously(auth).then(userCredential => {
                 userId = userCredential.user.uid;
                 showMessageBox(`Bienvenido, tu ID de usuario es: ${userId}`);
-                setupListeners();
-                loadChannelsFromFirebase();
-            }).catch(error => {
-                console.error("Error al inicializar Firebase Auth:", error);
-                showMessageBox("Error al inicializar la base de datos (Auth).");
-            });
-
-        } catch (error) {
-            console.error("Error al inicializar Firebase App:", error);
-            showMessageBox("Error al inicializar la base de datos.");
-        }
-        
-        const loadingMessage = document.getElementById('loading-message');
-
-        async function loadChannelsFromFirebase() {
-            try {
-                // Mostrar el mensaje de carga antes de la llamada a la base de datos
-                loadingMessage.style.display = 'block';
-
-                const canalesRef = collection(db, "canales");
-                const snapshot = await getDocs(canalesRef);
-                const fetchedChannels = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                 
-                if (fetchedChannels.length === 0) {
+                allChannelsList = channelsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                if (!epgResponse.ok) {
+                    throw new Error("Error de red al cargar el EPG.");
+                }
+                const epgText = await epgResponse.text();
+                const parser = new DOMParser();
+                epgData = parser.parseFromString(epgText, "text/xml");
+                if (epgData.getElementsByTagName("parsererror").length > 0) {
+                    throw new Error("El archivo XML del EPG está dañado.");
+                }
+
+                if (allChannelsList.length === 0) {
                     throw new Error("La base de datos de canales está vacía.");
                 }
 
-                window.allChannelsList = fetchedChannels;
-                window.categorias = [...new Set(window.allChannelsList.map(c => c.categoria))];
-                window.renderCategories();
-                window.currentChannels = window.allChannelsList;
-                window.renderChannels(window.allChannelsList, window.favoritesList);
-                await loadEpg();
+                window.categorias = [...new Set(allChannelsList.map(c => c.categoria))];
+                renderCategories();
+                window.currentChannels = allChannelsList;
+                setupListeners();
 
             } catch (e) {
-                console.error('Error al cargar canales desde Firebase:', e);
-                const fallbackMessage = document.createElement('li');
-                fallbackMessage.textContent = 'No se pudo cargar la lista de canales. Revisa tu conexión a Firebase o la estructura de tu base de datos.';
-                fallbackMessage.style.textAlign = 'center';
-                fallbackMessage.style.padding = '20px';
-                document.querySelector('.channel-list').appendChild(fallbackMessage);
+                console.error('Error al cargar datos:', e);
+                const errorMessage = document.createElement('li');
+                errorMessage.textContent = 'Error al cargar los datos. Revisa tu conexión a Firebase o el archivo EPG.';
+                errorMessage.style.textAlign = 'center';
+                errorMessage.style.padding = '20px';
+                document.querySelector('.channel-list').appendChild(errorMessage);
             } finally {
-                // Ocultar el mensaje de carga después de que la función termine (con éxito o con error)
-                loadingMessage.style.display = 'none';
+                document.getElementById('loading-message').style.display = 'none';
             }
         }
+        
+        loadAllData(); // Llamada inicial para cargar todo
         
         function setupListeners() {
             const favoritesRef = collection(db, `users/${userId}/favorites`);
             onSnapshot(favoritesRef, (snapshot) => {
-                const favorites = snapshot.docs.map(doc => doc.data());
-                window.favoritesList = favorites;
-                window.renderChannels(window.currentChannels, favorites);
+                window.favoritesList = snapshot.docs.map(doc => doc.data());
+                renderChannels(window.currentChannels, window.favoritesList);
             }, (error) => {
                 console.error("Error al obtener los favoritos:", error);
             });
@@ -536,7 +534,6 @@
     
     <script>
         const CAIDO_URL = "https://tvjrflix.appsjr.pro/caido.mp4";
-        const EPG_URL = "mexico2.xml";
         const channelList = document.querySelector('.channel-list');
         const videoPlayer = document.getElementById('videoPlayer');
         const categoriesDiv = document.querySelector('.categories-section');
@@ -554,39 +551,19 @@
         const progressBarContainer = document.querySelector('.progress-bar-container');
         const volumeSliderContainer = document.querySelector('.volume-slider-container');
         
-        window.allChannelsList = [];
-        window.categorias = [];
-        window.favoritesList = [];
-        window.currentChannels = [];
-        let epgData = null;
+        let epgData = null; // Variable para almacenar los datos del EPG
+        let allChannelsList = []; // Variable para almacenar los canales
 
-        async function loadEpg() {
-            try {
-                const response = await fetch(EPG_URL);
-                if (!response.ok) {
-                    throw new Error(`Error de red: ${response.status}`);
-                }
-                const xmlText = await response.text();
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(xmlText, "text/xml");
-                
-                if (xmlDoc.getElementsByTagName("parsererror").length > 0) {
-                    throw new Error("El archivo XML está dañado o no es válido.");
-                }
-                
-                epgData = xmlDoc;
-                console.log("Guía EPG cargada con éxito.");
-                showMessageBox("Guía EPG cargada.");
-            } catch (error) {
-                console.error("Error al cargar la guía EPG:", error);
-                if (error.message.includes("Error de red")) {
-                    showMessageBox("Error: El archivo EPG no se encontró. Verifica el nombre y la ubicación.");
-                } else if (error.message.includes("dañado")) {
-                    showMessageBox("Error: El archivo EPG está dañado.");
-                } else {
-                    showMessageBox("Guía no disponible.");
-                }
-            }
+        // Las funciones para renderizar, reproducir video, etc., se mantienen sin cambios
+        // pero ahora usan las variables globales `epgData` y `allChannelsList` que son cargadas al inicio.
+
+        function showMessageBox(message, duration = 3000) {
+            const messageBox = document.getElementById('messageBox');
+            messageBox.textContent = message;
+            messageBox.style.display = 'block';
+            setTimeout(() => {
+                messageBox.style.display = 'none';
+            }, duration);
         }
         
         function updateEpgDisplay(idepg) {
@@ -640,7 +617,7 @@
             }
         }
 
-        window.renderCategories = () => {
+        function renderCategories() {
             categoriesDiv.innerHTML = '';
             const allButton = document.createElement('div');
             allButton.className = 'category-item active';
@@ -648,8 +625,8 @@
             allButton.addEventListener('click', () => {
                 document.querySelectorAll('.category-item').forEach(btn => btn.classList.remove('active'));
                 allButton.classList.add('active');
-                window.currentChannels = window.allChannelsList;
-                window.renderChannels(window.allChannelsList, window.favoritesList);
+                window.currentChannels = allChannelsList;
+                renderChannels(allChannelsList, window.favoritesList);
             });
             categoriesDiv.appendChild(allButton);
 
@@ -660,14 +637,14 @@
                 button.addEventListener('click', () => {
                     document.querySelectorAll('.category-item').forEach(btn => btn.classList.remove('active'));
                     button.classList.add('active');
-                    window.currentChannels = window.allChannelsList.filter(c => c.categoria === cat);
-                    window.renderChannels(window.currentChannels, window.favoritesList);
+                    window.currentChannels = allChannelsList.filter(c => c.categoria === cat);
+                    renderChannels(window.currentChannels, window.favoritesList);
                 });
                 categoriesDiv.appendChild(button);
             });
-        };
+        }
         
-        window.renderChannels = (channels, favorites) => {
+        function renderChannels(channels, favorites) {
             channelList.innerHTML = '';
             const favoriteIds = new Set(favorites.map(fav => fav.id));
             
@@ -705,7 +682,7 @@
                 
                 channelList.appendChild(li);
             });
-        };
+        }
         
         function playCanal(channel) {
             const finalUrl = channel.m3u8_url;
@@ -752,7 +729,7 @@
         }
 
         function filterFavorites() {
-            window.renderChannels(window.favoritesList, window.favoritesList);
+            renderChannels(window.favoritesList, window.favoritesList);
         }
         
         // --- Lógica para los nuevos controles de video ---
@@ -809,7 +786,6 @@
                 
                 videoTime.textContent = `${formattedCurrentTime} / ${formattedDuration}`;
             } else {
-                // Si es un canal en vivo, no se muestra la duración
                 const currentMinutes = Math.floor(videoPlayer.currentTime / 60);
                 const currentSeconds = Math.floor(videoPlayer.currentTime % 60);
                 const formattedTime = `${String(currentMinutes).padStart(2, '0')}:${String(currentSeconds).padStart(2, '0')}`;
@@ -854,7 +830,7 @@
                 if (view === 'favorites') {
                     filterFavorites();
                 } else {
-                    window.renderChannels(window.allChannelsList, window.favoritesList);
+                    renderChannels(allChannelsList, window.favoritesList);
                 }
             });
         });
@@ -862,12 +838,12 @@
         // Lógica para la barra de búsqueda
         searchInput.addEventListener('input', () => {
             const query = searchInput.value.toLowerCase();
-            const filteredChannels = window.allChannelsList.filter(channel => 
+            const filteredChannels = allChannelsList.filter(channel => 
                 channel.nombre.toLowerCase().includes(query) || 
                 (channel.categoria && channel.categoria.toLowerCase().includes(query))
             );
             window.currentChannels = filteredChannels;
-            window.renderChannels(filteredChannels, window.favoritesList);
+            renderChannels(filteredChannels, window.favoritesList);
         });
     </script>
 </body>
