@@ -72,33 +72,44 @@
         const seriesId = new URLSearchParams(window.location.search).get('id');
         const seasonSelector = document.getElementById('season-selector');
         const episodesList = document.getElementById('episodes-list');
-        const videoPlayerModal = document.getElementById('video-player-modal');
         let player;
         
         async function loadSeriesDetails() {
-            if (!seriesId) { document.body.innerHTML = "<h1>ID de serie no encontrado</h1>"; return; }
+            if (!seriesId) { document.body.innerHTML = "<h1>ERROR: No se encontró un ID en la URL.</h1>"; return; }
+            console.log(`--- INICIANDO DIAGNÓSTICO PARA SERIE ID: ${seriesId} ---`);
 
+            // 1. OBTENER DATOS DE LA SERIE PRINCIPAL
             const seriesRef = doc(db, "series", seriesId);
             const seriesSnap = await getDoc(seriesRef);
-            if (!seriesSnap.exists()) { document.body.innerHTML = "<h1>Serie no encontrada en la base de datos.</h1>"; return; }
+            
+            if (!seriesSnap.exists()) {
+                console.error("FALLO CRÍTICO: El documento de la serie NO EXISTE en la ruta:", `series/${seriesId}`);
+                document.body.innerHTML = "<h1>Serie no encontrada. Verifica que el ID sea correcto.</h1>"; 
+                return;
+            }
             
             const seriesData = seriesSnap.data();
+            console.log("ÉXITO: Datos de la serie encontrados:", seriesData);
             document.title = seriesData.titulo;
             document.getElementById('series-backdrop').src = seriesData.backdrop_url || seriesData.poster_url || '';
             document.getElementById('series-poster').src = seriesData.poster_url || '';
             document.getElementById('series-title').textContent = seriesData.titulo;
-            // AHORA SÍ MOSTRAMOS LA SINOPSIS
             document.getElementById('series-overview').textContent = seriesData.sinopsis;
 
+            // 2. OBTENER DATOS DE LA SUBCOLECCIÓN 'temporadas'
             const temporadasPath = `series/${seriesId}/temporadas`;
+            console.log("Paso 2: Intentando acceder a la ruta de subcolección:", temporadasPath);
             const temporadasRef = collection(db, temporadasPath);
             const temporadasSnap = await getDocs(temporadasRef);
 
             if (temporadasSnap.empty) {
-                episodesList.innerHTML = '<li>No se encontraron temporadas. Verifica que existan en la base de datos y que las reglas de seguridad de Firebase sean correctas.</li>';
+                console.error("FALLO: La consulta a la subcolección 'temporadas' no devolvió NADA.");
+                console.warn("Posibles causas: 1) La subcolección 'temporadas' no existe dentro del documento de la serie. 2) Las reglas de seguridad de Firestore están bloqueando el acceso a subcolecciones.");
+                episodesList.innerHTML = '<li>No se encontraron temporadas. Por favor, verifica la estructura en Firebase y las reglas de seguridad.</li>';
                 return;
             }
 
+            console.log(`ÉXITO: Se encontraron ${temporadasSnap.size} documento(s) de temporadas.`);
             const temporadas = temporadasSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             temporadas.sort((a, b) => parseInt(a.id.split('_')[1] || 0) - parseInt(b.id.split('_')[1] || 0));
             
@@ -114,38 +125,34 @@
             });
 
             if (seasonSelector.options.length > 0) {
+                console.log("Selector de temporadas poblado. Cargando episodios para la primera temporada:", seasonSelector.value);
                 loadEpisodes(seasonSelector.value);
             } else {
-                episodesList.innerHTML = '<li>No hay temporadas disponibles para esta serie.</li>';
+                console.error("FALLO: Aunque se encontraron documentos de temporada, ninguno pasó el filtro para ser mostrado (ej. temporada_0).");
+                episodesList.innerHTML = '<li>No hay temporadas válidas (mayores a 0) para mostrar.</li>';
             }
         }
         
         async function loadEpisodes(temporadaId) {
+            // El resto del código que ya funcionaba
             episodesList.innerHTML = '<li>Cargando episodios...</li>';
             const episodiosRef = collection(db, `series/${seriesId}/temporadas/${temporadaId}/episodios`);
             const q = query(episodiosRef, orderBy("numero"));
             const episodiosSnap = await getDocs(q);
             episodesList.innerHTML = '';
-            
             if (episodiosSnap.empty) {
                 episodesList.innerHTML = '<li>No se encontraron episodios para esta temporada.</li>';
                 return;
             }
-
             episodiosSnap.forEach(epDoc => {
                 const epData = epDoc.data();
                 const li = document.createElement('li');
                 li.className = 'episode-item';
-                li.innerHTML = `
-                    <span class="episode-number">${epData.numero}</span>
-                    <span class="episode-title">${epData.titulo}</span>
-                    <i class="fas fa-play"></i>
-                `;
+                li.innerHTML = `<span class="episode-number">${epData.numero}</span><span class="episode-title">${epData.titulo}</span><i class="fas fa-play"></i>`;
                 if(epData.video_url && epData.video_url.trim() !== '') {
                     li.onclick = () => playEpisode(epData.video_url, `Ep. ${epData.numero} - ${epData.titulo}`);
                 } else {
-                    li.style.cursor = 'not-allowed';
-                    li.style.opacity = '0.5';
+                    li.style.cursor = 'not-allowed'; li.style.opacity = '0.5';
                     li.querySelector('.fa-play').style.display = 'none';
                 }
                 episodesList.appendChild(li);
@@ -153,6 +160,8 @@
         }
 
         function playEpisode(videoUrl, title) {
+            // El resto del código que ya funcionaba
+            const videoPlayerModal = document.getElementById('video-player-modal');
             videoPlayerModal.style.display = 'flex';
             if (player) player.destroy();
             player = new Plyr('#video-player', { title: title });
@@ -176,8 +185,8 @@
                 await signInAnonymously(auth);
                 await loadSeriesDetails();
             } catch(e) {
-                console.error("Error fatal al cargar la página:", e);
-                document.body.innerHTML = `<h1>Error al cargar los detalles de la serie. Revisa la consola (F12) para más detalles.</h1>`
+                console.error("ERROR FATAL:", e);
+                document.body.innerHTML = `<h1>Ocurrió un error crítico. Revisa la consola (F12) para ver los detalles.</h1>`
             }
         }
 
