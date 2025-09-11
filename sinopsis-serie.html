@@ -2,11 +2,9 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <!-- CORRECCIÓN 1: Pequeño arreglo en la etiqueta viewport -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="series-title-page">Cargando...</title>
     <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
-    <!-- CORRECCIÓN 2: Se cambió el link de Font Awesome a uno más estable -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css">
     <style>
         :root { --dark-bg: #1a1a2e; --dark-card: #2c2c44; --red-heart: #e74c3c; --text-light: #ecf0f1; --plyr-color-main: var(--red-heart); }
@@ -16,7 +14,7 @@
         .series-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; background: linear-gradient(to top, var(--dark-bg), transparent); display: flex; gap: 20px; align-items: flex-end; }
         .poster-img { width: 120px; border-radius: 5px; box-shadow: 0 5px 15px black; }
         .series-details h1 { margin: 0 0 10px; }
-        .series-details p { margin: 0; font-size: 0.9em; line-height: 1.5; max-height: 70px; overflow: hidden; }
+        .series-details p { margin: 0; font-size: 0.9em; line-height: 1.5; max-height: 70px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
         .episodes-section { padding: 20px; }
         .season-selector { width: 100%; padding: 10px; background-color: var(--dark-card); color: var(--text-light); border: 1px solid #555; border-radius: 5px; font-size: 1.1em; margin-bottom: 20px; }
         .episode-list { list-style: none; padding: 0; margin: 0; }
@@ -89,8 +87,8 @@
             document.getElementById('series-backdrop').src = seriesData.backdrop_url || seriesData.poster_url || '';
             document.getElementById('series-poster').src = seriesData.poster_url || '';
             document.getElementById('series-title').textContent = seriesData.titulo;
-            // No tenías campo sinopsis en el admin de series, así que lo dejamos fuera para evitar errores.
-            // document.getElementById('series-overview').textContent = seriesData.sinopsis;
+            // AHORA SÍ MOSTRAMOS LA SINOPSIS
+            document.getElementById('series-overview').textContent = seriesData.sinopsis;
 
             const temporadasPath = `series/${seriesId}/temporadas`;
             const temporadasRef = collection(db, temporadasPath);
