@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="movie-title-page">Cargando...</title>
+    <!-- 1. Añadimos los estilos de Plyr -->
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         :root {
@@ -12,6 +14,8 @@
             --red-heart: #e74c3c;
             --text-light: #ecf0f1;
             --text-muted: #95a5a6;
+            /* 2. Personalizamos los colores de Plyr para que coincidan con tu app */
+            --plyr-color-main: var(--red-heart);
         }
 
         body {
@@ -21,6 +25,9 @@
             margin: 0;
             padding: 0;
             -webkit-font-smoothing: antialiased;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
             padding-bottom: 70px;
         }
 
@@ -30,125 +37,135 @@
             padding: 15px;
             background-color: var(--dark-card);
         }
+
         .header .back-btn {
-            background: none; border: none; color: var(--text-light);
-            font-size: 1.5em; cursor: pointer; margin-right: 15px;
+            background: none;
+            border: none;
+            color: var(--text-light);
+            font-size: 1.5em;
+            cursor: pointer;
+            margin-right: 15px;
         }
 
         .movie-details-container {
-            position: relative; width: 100%; height: 50vh; overflow: hidden;
+            position: relative;
+            width: 100%;
+            height: 50vh;
+            overflow: hidden;
         }
+
         .backdrop-img {
-            width: 100%; height: 100%; object-fit: cover; filter: brightness(0.4);
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: brightness(0.4);
+            transition: filter 0.5s ease;
         }
+
         .details-overlay {
-            position: absolute; bottom: 0; left: 0; width: 100%;
-            padding: 20px; box-sizing: border-box;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
             background: linear-gradient(to top, rgba(26, 26, 46, 1), rgba(26, 26, 46, 0.5));
         }
-        .details-overlay h1 { margin: 0 0 10px; font-size: 2em; }
-        .details-overlay p { margin: 0; font-size: 0.9em; color: var(--text-muted); }
-        .play-btn {
-            background-color: var(--red-heart); color: white; border: none;
-            padding: 12px 25px; border-radius: 50px; font-size: 1em;
-            cursor: pointer; margin-top: 15px; transition: background-color 0.3s ease;
+        
+        .details-overlay h1 {
+            margin: 0 0 10px;
+            font-size: 2em;
         }
-        .play-btn:hover { background-color: #c0392b; }
 
-        .synopsis-text { padding: 20px; line-height: 1.6; }
+        .details-overlay p {
+            margin: 0;
+            font-size: 0.9em;
+            color: var(--text-muted);
+        }
+
+        .play-btn {
+            background-color: var(--red-heart);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-size: 1em;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: background-color 0.3s ease;
+        }
+
+        .play-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .synopsis-text {
+            padding: 20px;
+            line-height: 1.6;
+        }
 
         .bottom-nav {
-            display: flex; justify-content: space-around; align-items: center;
-            height: 60px; background-color: var(--dark-card);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            height: 60px;
+            background-color: var(--dark-card);
             border-top: 1px solid rgba(255, 255, 255, 0.1);
-            position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
         }
         .bottom-nav .nav-item {
-            display: flex; flex-direction: column; align-items: center;
-            text-decoration: none; color: var(--text-muted);
-            font-size: 0.7em; text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.7em;
+            text-align: center;
         }
-        .bottom-nav .nav-item.active { color: var(--red-heart); }
-        .bottom-nav .nav-item i { font-size: 1.4em; margin-bottom: 5px; }
+        .bottom-nav .nav-item.active {
+            color: var(--text-light);
+        }
+        .bottom-nav .nav-item i {
+            font-size: 1.4em;
+            margin-bottom: 5px;
+        }
 
-        /* --- ESTILOS DEL REPRODUCTOR PERSONALIZADO --- */
         #video-player-modal {
             display: none;
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: #000;
-            z-index: 2000;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            z-index: 1000;
             justify-content: center;
             align-items: center;
         }
         .player-container {
             width: 100%;
             height: 100%;
-            position: relative;
         }
-        #movie-player {
-            width: 100%;
-            height: 100%;
-        }
-        .custom-controls-overlay {
+        .close-player-btn {
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            opacity: 1;
-            transition: opacity 0.3s ease-in-out;
-        }
-        .custom-controls-overlay.hidden {
-            opacity: 0;
-            cursor: none;
-        }
-        .controls-top {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
-        }
-        .controls-top .back-btn {
-            background: none; border: none; color: white;
-            font-size: 1.5em; cursor: pointer; margin-right: 15px;
-        }
-        .controls-top .movie-title-player {
-            font-size: 1.2em;
-        }
-        .controls-bottom {
-            padding: 15px;
-            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
-        }
-        .progress-bar-container {
-            width: 100%;
-            height: 5px;
-            background-color: rgba(255, 255, 255, 0.3);
+            top: 15px;
+            left: 15px;
+            background: rgba(0,0,0,0.5);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            color: white;
+            font-size: 1.5em;
             cursor: pointer;
-            margin-bottom: 10px;
-        }
-        .progress-bar {
-            height: 100%;
-            background-color: var(--red-heart);
-            width: 0%;
-        }
-        .bottom-buttons {
+            z-index: 1001;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
-        }
-        .controls-left, .controls-right {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-        .controls-left button, .controls-right button {
-            background: none; border: none; color: white;
-            font-size: 1.5em; cursor: pointer;
-        }
-        .time-display {
-            font-size: 0.9em;
         }
     </style>
 </head>
@@ -174,45 +191,28 @@
 
     <nav class="bottom-nav">
         <a href="index.html" class="nav-item">
-            <i class="fas fa-home"></i> <span>Inicio</span>
+            <i class="fas fa-home"></i>
+            <span>Inicio</span>
         </a>
         <a href="#" class="nav-item">
-            <i class="fas fa-heart"></i> <span>Favoritos</span>
+            <i class="fas fa-heart"></i>
+            <span>Favoritos</span>
         </a>
         <a href="peliculas.html" class="nav-item active">
-            <i class="fas fa-film"></i> <span>Películas</span>
+            <i class="fas fa-film"></i>
+            <span>Películas</span>
         </a>
     </nav>
     
     <div id="video-player-modal">
+        <button id="close-player-btn" class="close-player-btn"><i class="fas fa-arrow-left"></i></button>
         <div class="player-container">
-            <video id="movie-player" preload="auto"></video>
-            
-            <div class="custom-controls-overlay">
-                <div class="controls-top">
-                    <button id="close-player-btn" class="back-btn"><i class="fas fa-arrow-left"></i></button>
-                    <span id="movie-title-player" class="movie-title-player"></span>
-                </div>
-
-                <div class="controls-bottom">
-                    <div class="progress-bar-container" id="progress-container">
-                        <div class="progress-bar" id="progress-bar"></div>
-                    </div>
-                    <div class="bottom-buttons">
-                        <div class="controls-left">
-                            <button id="play-pause-btn"><i class="fas fa-play"></i></button>
-                            <button id="mute-btn"><i class="fas fa-volume-up"></i></button>
-                            <span class="time-display" id="time-display">00:00 / 00:00</span>
-                        </div>
-                        <div class="controls-right">
-                            <button id="fullscreen-btn"><i class="fas fa-expand"></i></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <video id="movie-player" playsinline controls></video>
         </div>
     </div>
 
+    <!-- 3. Añadimos el script de Plyr al final -->
+    <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -230,23 +230,11 @@
         const db = getFirestore(app);
         const auth = getAuth(app);
 
-        // Elementos de la página principal
         const playBtn = document.getElementById('play-btn');
-
-        // Elementos del modal del reproductor
         const videoPlayerModal = document.getElementById('video-player-modal');
-        const playerContainer = document.querySelector('.player-container');
-        const videoPlayer = document.getElementById('movie-player');
-        const customControls = document.querySelector('.custom-controls-overlay');
-        const playPauseBtn = document.getElementById('play-pause-btn');
-        const muteBtn = document.getElementById('mute-btn');
-        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        const videoPlayerElement = document.getElementById('movie-player');
         const closePlayerBtn = document.getElementById('close-player-btn');
-        const progressBar = document.getElementById('progress-bar');
-        const progressContainer = document.getElementById('progress-container');
-        const timeDisplay = document.getElementById('time-display');
-
-        let controlsTimeout;
+        let player; // Variable para guardar la instancia de Plyr
 
         async function authenticateAndLoad() {
             try {
@@ -282,10 +270,7 @@
 
                     playBtn.addEventListener('click', () => {
                         if (movieData.video_url) {
-                            videoPlayer.src = movieData.video_url;
-                            document.getElementById('movie-title-player').textContent = movieData.titulo;
-                            videoPlayerModal.style.display = 'flex';
-                            videoPlayer.play();
+                            setupAndPlayVideo(movieData.video_url, movieData.titulo);
                         } else {
                             alert('No se ha proporcionado un enlace de video para esta película.');
                         }
@@ -295,110 +280,47 @@
                     document.body.innerHTML = '<h1>Error</h1><p>Película no encontrada.</p>';
                 }
             } catch (error) {
-                console.error("Error al cargar detalles:", error);
-                document.body.innerHTML = '<h1>Error</h1><p>Ocurrió un error al cargar los detalles.</p>';
+                console.error("Error al cargar detalles de la película:", error);
+                document.body.innerHTML = '<h1>Error</h1><p>Ocurrió un error al cargar los detalles de la película.</p>';
             }
-        }
-
-        function togglePlayPause() {
-            if (videoPlayer.paused) {
-                videoPlayer.play();
-            } else {
-                videoPlayer.pause();
-            }
-        }
-
-        function updatePlayPauseIcon() {
-            const icon = playPauseBtn.querySelector('i');
-            icon.classList.toggle('fa-play', videoPlayer.paused);
-            icon.classList.toggle('fa-pause', !videoPlayer.paused);
-        }
-
-        function toggleMute() {
-            videoPlayer.muted = !videoPlayer.muted;
         }
         
-        function updateMuteIcon() {
-            const icon = muteBtn.querySelector('i');
-            icon.classList.toggle('fa-volume-up', !videoPlayer.muted);
-            icon.classList.toggle('fa-volume-mute', videoPlayer.muted);
-        }
-
-        function updateProgress() {
-            const progressPercent = (videoPlayer.currentTime / videoPlayer.duration) * 100;
-            progressBar.style.width = `${progressPercent}%`;
-
-            const formatTime = (timeInSeconds) => {
-                const minutes = Math.floor(timeInSeconds / 60);
-                const seconds = Math.floor(timeInSeconds % 60);
-                return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        function setupAndPlayVideo(videoUrl, title) {
+            videoPlayerModal.style.display = 'flex';
+            
+            if (player) {
+                player.destroy();
             }
-            timeDisplay.textContent = `${formatTime(videoPlayer.currentTime)} / ${formatTime(videoPlayer.duration || 0)}`;
+
+            player = new Plyr(videoPlayerElement, {
+                title: title,
+                // Puedes añadir más opciones de configuración aquí
+                // Por ejemplo, para que empiece en pantalla completa:
+                fullscreen: { enabled: true, fallback: true, iosNative: true },
+            });
+
+            player.source = {
+                type: 'video',
+                title: title,
+                sources: [{ src: videoUrl }],
+            };
+            
+            player.on('ready', (event) => {
+                player.play();
+                // Opcional: intentar entrar en pantalla completa al estar listo
+                // player.fullscreen.enter();
+            });
         }
 
-        function setProgress(e) {
-            const progressContainerWidth = progressContainer.clientWidth;
-            const clickPosition = e.offsetX;
-            videoPlayer.currentTime = (clickPosition / progressContainerWidth) * videoPlayer.duration;
-        }
-
-        function toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                playerContainer.requestFullscreen().catch(err => {
-                    alert(`No se pudo entrar en pantalla completa: ${err.message}`);
-                });
-            } else {
-                document.exitFullscreen();
+        closePlayerBtn.addEventListener('click', () => {
+            if (player) {
+                player.pause();
+                player.source = null;
             }
-        }
-
-        function updateFullscreenIcon() {
-            const icon = fullscreenBtn.querySelector('i');
-            icon.classList.toggle('fa-expand', !document.fullscreenElement);
-            icon.classList.toggle('fa-compress', document.fullscreenElement);
-        }
-        
-        function closePlayer() {
-            videoPlayer.pause();
-            videoPlayer.src = "";
             videoPlayerModal.style.display = 'none';
-            if(document.fullscreenElement) document.exitFullscreen();
-        }
-
-        function showControls() {
-            customControls.classList.remove('hidden');
-            clearTimeout(controlsTimeout);
-            if (!videoPlayer.paused) {
-                controlsTimeout = setTimeout(() => customControls.classList.add('hidden'), 3000);
-            }
-        }
-
-        playPauseBtn.addEventListener('click', togglePlayPause);
-        videoPlayer.addEventListener('click', togglePlayPause);
-        videoPlayer.addEventListener('play', updatePlayPauseIcon);
-        videoPlayer.addEventListener('pause', updatePlayPauseIcon);
-        
-        muteBtn.addEventListener('click', toggleMute);
-        videoPlayer.addEventListener('volumechange', updateMuteIcon);
-
-        videoPlayer.addEventListener('timeupdate', updateProgress);
-        videoPlayer.addEventListener('loadedmetadata', updateProgress);
-        progressContainer.addEventListener('click', setProgress);
-
-        fullscreenBtn.addEventListener('click', toggleFullscreen);
-        document.addEventListener('fullscreenchange', updateFullscreenIcon);
-
-        closePlayerBtn.addEventListener('click', closePlayer);
-
-        playerContainer.addEventListener('mousemove', showControls);
-        playerContainer.addEventListener('mouseleave', () => {
-             if (!videoPlayer.paused) {
-                customControls.classList.add('hidden');
-             }
         });
-        
-        authenticateAndLoad();
 
+        authenticateAndLoad();
     </script>
 </body>
 </html>
