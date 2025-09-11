@@ -2,14 +2,16 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale-1.0">
+    <!-- CORRECCIÓN 1: Pequeño arreglo en la etiqueta viewport -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="series-title-page">Cargando...</title>
     <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- CORRECCIÓN 2: Se cambió el link de Font Awesome a uno más estable -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.0.0/css/all.min.css">
     <style>
         :root { --dark-bg: #1a1a2e; --dark-card: #2c2c44; --red-heart: #e74c3c; --text-light: #ecf0f1; --plyr-color-main: var(--red-heart); }
         body { font-family: 'Arial', sans-serif; background-color: var(--dark-bg); color: var(--text-light); margin: 0; padding: 0; }
-        .series-header { position: relative; height: 50vh; }
+        .series-header { position: relative; height: 50vh; background-color: var(--dark-card); }
         .backdrop-img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.5); }
         .series-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; background: linear-gradient(to top, var(--dark-bg), transparent); display: flex; gap: 20px; align-items: flex-end; }
         .poster-img { width: 120px; border-radius: 5px; box-shadow: 0 5px 15px black; }
@@ -59,19 +61,16 @@
         const firebaseConfig = {
           apiKey: "AIzaSyCLGiT_UeTm578cQeCwLldH50qOjounCOs",
           authDomain: "miappdetv-db.firebaseapp.com",
-          databaseURL: "https://miappdetv-db-default-rtdb.firebaseio.com",
           projectId: "miappdetv-db",
           storageBucket: "miappdetv-db.firebasestorage.app",
           messagingSenderId: "515640857376",
           appId: "1:515640857376:web:89e5bb051ee79f030c3d45"
         };
 
-        // --- ESTAS LÍNEAS SON LAS IMPORTANTES QUE SOLUCIONAN EL ERROR ---
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app); // Ahora 'db' está definido correctamente
+        const db = getFirestore(app);
         const auth = getAuth(app);
-        // ----------------------------------------------------------------
-
+        
         const seriesId = new URLSearchParams(window.location.search).get('id');
         const seasonSelector = document.getElementById('season-selector');
         const episodesList = document.getElementById('episodes-list');
@@ -80,31 +79,35 @@
         
         async function loadSeriesDetails() {
             if (!seriesId) { document.body.innerHTML = "<h1>ID de serie no encontrado</h1>"; return; }
+
             const seriesRef = doc(db, "series", seriesId);
             const seriesSnap = await getDoc(seriesRef);
-            if (!seriesSnap.exists()) { document.body.innerHTML = "<h1>Serie no encontrada</h1>"; return; }
+            if (!seriesSnap.exists()) { document.body.innerHTML = "<h1>Serie no encontrada en la base de datos.</h1>"; return; }
             
             const seriesData = seriesSnap.data();
-            document.getElementById('series-title-page').textContent = seriesData.titulo;
-            document.getElementById('series-backdrop').src = seriesData.backdrop_url || seriesData.poster_url;
-            document.getElementById('series-poster').src = seriesData.poster_url;
+            document.title = seriesData.titulo;
+            document.getElementById('series-backdrop').src = seriesData.backdrop_url || seriesData.poster_url || '';
+            document.getElementById('series-poster').src = seriesData.poster_url || '';
             document.getElementById('series-title').textContent = seriesData.titulo;
-            document.getElementById('series-overview').textContent = seriesData.sinopsis;
+            // No tenías campo sinopsis en el admin de series, así que lo dejamos fuera para evitar errores.
+            // document.getElementById('series-overview').textContent = seriesData.sinopsis;
 
-            const temporadasRef = collection(db, `series/${seriesId}/temporadas`);
+            const temporadasPath = `series/${seriesId}/temporadas`;
+            const temporadasRef = collection(db, temporadasPath);
             const temporadasSnap = await getDocs(temporadasRef);
-            const temporadas = temporadasSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-            temporadas.sort((a, b) => {
-                const numA = parseInt(a.id.split('_')[1] || 0);
-                const numB = parseInt(b.id.split('_')[1] || 0);
-                return numA - numB;
-            });
+            if (temporadasSnap.empty) {
+                episodesList.innerHTML = '<li>No se encontraron temporadas. Verifica que existan en la base de datos y que las reglas de seguridad de Firebase sean correctas.</li>';
+                return;
+            }
+
+            const temporadas = temporadasSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            temporadas.sort((a, b) => parseInt(a.id.split('_')[1] || 0) - parseInt(b.id.split('_')[1] || 0));
             
             seasonSelector.innerHTML = '';
             temporadas.forEach(temporada => {
                 const numTemporada = temporada.id.split('_')[1];
-                if (parseInt(numTemporada) > 0) { // Omitimos la temporada 0 de especiales
+                if (numTemporada && parseInt(numTemporada) > 0) {
                     const option = document.createElement('option');
                     option.value = temporada.id;
                     option.textContent = `Temporada ${numTemporada}`; 
@@ -113,9 +116,9 @@
             });
 
             if (seasonSelector.options.length > 0) {
-                loadEpisodes(seasonSelector.value); // Carga episodios de la primera temporada en la lista
+                loadEpisodes(seasonSelector.value);
             } else {
-                episodesList.innerHTML = '<li>No hay temporadas para esta serie.</li>';
+                episodesList.innerHTML = '<li>No hay temporadas disponibles para esta serie.</li>';
             }
         }
         
@@ -155,19 +158,12 @@
             videoPlayerModal.style.display = 'flex';
             if (player) player.destroy();
             player = new Plyr('#video-player', { title: title });
-            player.source = {
-                type: 'video',
-                title: title,
-                sources: [{ src: videoUrl }],
-            };
+            player.source = { type: 'video', title: title, sources: [{ src: videoUrl }], };
             player.play();
             try {
-                if (player.fullscreen.enabled) {
-                    player.fullscreen.enter();
-                }
+                if (player.fullscreen.enabled) player.fullscreen.enter();
                 screen.orientation?.lock('landscape').catch(()=>{});
             } catch(e) {}
-            
             player.on('exitfullscreen', () => {
                 player.pause();
                 videoPlayerModal.style.display = 'none';
@@ -182,8 +178,8 @@
                 await signInAnonymously(auth);
                 await loadSeriesDetails();
             } catch(e) {
-                console.error("Error al cargar la página:", e);
-                document.body.innerHTML = "<h1>Error al cargar los detalles de la serie.</h1>"
+                console.error("Error fatal al cargar la página:", e);
+                document.body.innerHTML = `<h1>Error al cargar los detalles de la serie. Revisa la consola (F12) para más detalles.</h1>`
             }
         }
 
