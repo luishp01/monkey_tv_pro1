@@ -41,7 +41,7 @@
         .search-container { display: flex; align-items: center; position: relative; }
         google-cast-launcher { width: 24px; height: 24px; cursor: pointer; margin-left: 15px; }
         .cast-icon { color: var(--text-muted); cursor: pointer; }
-        #search-input { width: 0; opacity: 0; padding: 8px 15px; border-radius: 20px; border: 1px solid #555; background-color: #1a1a2e; color: #ecf0f1; transition: width 0.3s ease-in-out, opacity 0.3s ease-in-out; position: absolute; right: 0; box-sizing: border-box; z-index: -1; }
+        #search-input { width: 0; opacity: 0; padding: 8px 15px; border-radius: 20px; border: 1px solid #555; background-color: #1a1a2e; color: #ecf0f1; transition: width 0.3s ease-in-out, opacity 0.3s ease-in-out; position: absolute; right: 0; z-index: -1; }
         #search-input.active { width: 200px; opacity: 1; z-index: 1; }
         .search-icon { font-size: 1.2em; cursor: pointer; z-index: 2; }
 
@@ -70,8 +70,12 @@
         .main-content { padding: 10px; }
 
         .categories-section {
-            display: flex; overflow-x: auto; gap: 10px; padding: 10px 0;
-            -webkit-overflow-scrolling: touch; scrollbar-width: none;
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            padding: 10px 0;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
         }
         .categories-section::-webkit-scrollbar { display: none; }
         .category-item { background-color: var(--dark-card); padding: 8px 15px; border-radius: 20px; font-size: 0.8em; white-space: nowrap; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
@@ -201,7 +205,6 @@
     </nav>
     
     <script type="module">
-        // --- SCRIPT DE FIREBASE COMPLETO ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -247,7 +250,6 @@
     </script>
     
     <script>
-        // --- LÓGICA DE CHROMECAST COMPLETA ---
         window['__onGCastApiAvailable'] = function(isAvailable) { if (isAvailable) { initializeCastApi(); } };
         function initializeCastApi() {
             cast.framework.CastContext.getInstance().setOptions({ receiverApplicationId: 'CC1AD845', autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED });
@@ -265,7 +267,6 @@
             castSession.loadMedia(request).then( () => { showMessageBox('Transmitiendo video de prueba en tu TV.'); }, (errorCode) => { alert('Error al transmitir: ' + errorCode); } );
         }
 
-        // --- LÓGICA DE LA APLICACIÓN COMPLETA ---
         const videoPlayer = document.getElementById('videoPlayer');
         const videoPlaceholder = document.querySelector('.video-placeholder');
         const videoOverlay = document.querySelector('.video-overlay');
@@ -293,12 +294,16 @@
 
         function filterAndRenderChannels(category) {
             let channelsToRender;
-            document.querySelector('.categories-section').style.display = 'block';
-            document.querySelector('.channel-header').style.display = 'flex';
+            const categoriesSection = document.querySelector('.categories-section');
+            const channelHeader = document.querySelector('.channel-header');
+            
+            categoriesSection.style.display = 'flex';
+            channelHeader.style.display = 'flex';
+
             if (category === 'FAVORITOS') {
                 document.querySelector('.section-title').textContent = 'MIS FAVORITOS';
-                document.querySelector('.categories-section').style.display = 'none';
-                document.querySelector('.channel-header').style.display = 'none';
+                categoriesSection.style.display = 'none';
+                channelHeader.style.display = 'none';
                 channelsToRender = window.allChannelsList.filter(c => window.favoritesList.includes(c.id));
             } else {
                 document.querySelector('.section-title').textContent = category.toUpperCase();
@@ -378,8 +383,9 @@
             
             if (view === 'favorites') { filterAndRenderChannels('FAVORITOS'); } 
             else if (view === 'all') {
-                document.querySelector('.categories-section').querySelector('.active')?.classList.remove('active');
-                document.querySelector('.categories-section').querySelector('[data-category="TODOS"]').classList.add('active');
+                const categoriesSection = document.querySelector('.categories-section');
+                categoriesSection.querySelector('.active')?.classList.remove('active');
+                categoriesSection.querySelector('[data-category="TODOS"]').classList.add('active');
                 filterAndRenderChannels('TODOS');
             }
         }
