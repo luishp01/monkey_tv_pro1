@@ -53,6 +53,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
         const firebaseConfig = {
           apiKey: "AIzaSyCLGiT_UeTm578cQeCwLldH50qOjounCOs",
@@ -64,6 +65,12 @@
           appId: "1:515640857376:web:89e5bb051ee79f030c3d45"
         };
         
+        // --- CÓDIGO AÑADIDO ---
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        // -----------------------
+
         const heroContainer = document.getElementById('hero-container');
         const seriesContainer = document.getElementById('series-container');
         const searchInput = document.getElementById('search-input');
@@ -72,6 +79,10 @@
 
         async function main() {
             try {
+                // --- LÍNEA AÑADIDA ---
+                await signInAnonymously(auth); 
+                // ---------------------
+
                 const seriesCol = collection(db, "series");
                 const seriesSnapshot = await getDocs(seriesCol);
                 allSeries = seriesSnapshot.docs.map(doc => doc.data());
@@ -92,7 +103,9 @@
         function displayHero() {
             const heroSeries = allSeries.find(s => s.backdrop_url) || allSeries[0];
             if (!heroSeries) return;
-            heroContainer.style.backgroundImage = `url(${heroSeries.backdrop_url})`;
+            // Corregido para usar backdrop_url si existe
+            const heroImageUrl = heroSeries.backdrop_url || heroSeries.poster_url;
+            heroContainer.style.backgroundImage = `url(${heroImageUrl})`;
             heroContainer.innerHTML = `
                 <div class="hero-content">
                     <h2 class="hero-title">${heroSeries.titulo}</h2>
