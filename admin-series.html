@@ -59,6 +59,8 @@
                 <input type="hidden" id="series-id">
                 <label>Título:</label> <input type="text" id="series-title">
                 <label>URL Póster:</label> <input type="text" id="series-poster">
+                <label>URL Fondo (Backdrop):</label> <input type="text" id="series-backdrop">
+                <label>Sinopsis:</label> <textarea id="series-overview" rows="4"></textarea>
                 <button id="save-series-details-btn">1. Guardar/Actualizar Detalles de la Serie</button>
                 <hr style="border-color: #555; margin: 20px 0;">
                 <label>Seleccionar Temporada:</label> <select id="season-selector"></select>
@@ -147,12 +149,16 @@
                     id: data.id.toString(),
                     titulo: data.name,
                     poster_url: data.poster_path ? `https://image.tmdb.org/t/p/w500${data.poster_path}` : '',
+                    backdrop_url: data.backdrop_path ? `https://image.tmdb.org/t/p/w1280${data.backdrop_path}` : '',
+                    sinopsis: data.overview,
                     seasons: data.seasons.filter(s => s.season_number > 0 && s.episode_count > 0)
                 };
                 
                 document.getElementById('series-id').value = currentSeriesData.id;
                 document.getElementById('series-title').value = currentSeriesData.titulo;
                 document.getElementById('series-poster').value = currentSeriesData.poster_url;
+                document.getElementById('series-backdrop').value = currentSeriesData.backdrop_url;
+                document.getElementById('series-overview').value = currentSeriesData.sinopsis;
                 
                 seasonSelector.innerHTML = '';
                 currentSeriesData.seasons.forEach(season => {
@@ -164,7 +170,11 @@
                 
                 seriesDetailsForm.style.display = 'block';
                 episodesContainer.style.display = 'block';
-                await loadSeason(currentSeriesData.id, 1);
+                if (seasonSelector.options.length > 0) {
+                    await loadSeason(currentSeriesData.id, seasonSelector.value);
+                } else {
+                    episodesList.innerHTML = '<li>Esta serie no tiene temporadas disponibles.</li>';
+                }
             }
 
             async function loadSeason(seriesId, seasonNumber) {
@@ -173,7 +183,10 @@
                 const response = await fetch(tmdbUrl);
                 const tmdbData = await response.json();
 
-                const episodiosRef = collection(db, `series/${seriesId}/temporadas/temporada_${seasonNumber}/episodios`);
+                const seriesDocRef = doc(db, "series", seriesId);
+                const temporadaDocRef = doc(collection(seriesDocRef, "temporadas"), `temporada_${seasonNumber}`);
+                const episodiosRef = collection(temporadaDocRef, "episodios");
+
                 const firebaseSnapshot = await getDocs(episodiosRef);
                 const existingEpisodes = {};
                 firebaseSnapshot.forEach(doc => { existingEpisodes[doc.id] = doc.data(); });
@@ -205,7 +218,9 @@
                     await setDoc(seriesDocRef, {
                         id: seriesId,
                         titulo: document.getElementById('series-title').value,
-                        poster_url: document.getElementById('series-poster').value
+                        poster_url: document.getElementById('series-poster').value,
+                        backdrop_url: document.getElementById('series-backdrop').value,
+                        sinopsis: document.getElementById('series-overview').value
                     }, { merge: true });
                     alert('Detalles de la serie guardados.');
                     await loadExistingSeries(); // Actualiza la lista
@@ -221,13 +236,17 @@
                 saveEpisodesBtn.disabled = true;
                 try {
                     const batch = writeBatch(db);
-                    const temporadaRef = doc(db, `series/${seriesId}/temporadas/temporada_${seasonNumber}`);
+                    const seriesDocRef = doc(db, "series", seriesId);
+                    const temporadaDocRef = doc(collection(seriesDocRef, "temporadas"), `temporada_${seasonNumber}`);
                     
                     document.querySelectorAll('.episode-item').forEach(item => {
                         const epNumber = item.dataset.episodeNumber;
                         const epName = item.dataset.episodeName;
                         const videoUrl = item.querySelector('input').value.trim();
-                        const episodioRef = doc(collection(temporadaRef, "episodios"), `episodio_${epNumber}`);
+                        
+                        // Referencia al documento del episodio dentro de la subcolección
+                        const episodioRef = doc(collection(temporadaDocRef, "episodios"), `episodio_${epNumber}`);
+                        
                         batch.set(episodioRef, {
                             numero: parseInt(epNumber),
                             titulo: epName,
@@ -272,10 +291,11 @@
             }
 
             async function deleteSeries(seriesId, seriesTitle) {
-                if (confirm(`¿SEGURO de que quieres eliminar TODA la serie "${seriesTitle}"?`)) {
-                    // Esta es una forma simple de borrar, puede tomar tiempo si hay muchos episodios
+                if (confirm(`¿SEGURO de que quieres eliminar TODA la serie "${seriesTitle}"? Esto borrará sus temporadas y episodios.`)) {
                     try {
-                        const temporadasSnapshot = await getDocs(collection(db, `series/${seriesId}/temporadas`));
+                        const seriesDocRef = doc(db, "series", seriesId);
+                        const temporadasSnapshot = await getDocs(collection(seriesDocRef, "temporadas"));
+                        
                         for (const temporadaDoc of temporadasSnapshot.docs) {
                             const episodiosSnapshot = await getDocs(collection(temporadaDoc.ref, "episodios"));
                             for (const episodioDoc of episodiosSnapshot.docs) {
@@ -283,7 +303,8 @@
                             }
                             await deleteDoc(temporadaDoc.ref);
                         }
-                        await deleteDoc(doc(db, "series", seriesId));
+                        
+                        await deleteDoc(seriesDocRef);
                         alert("Serie eliminada por completo.");
                         await loadExistingSeries();
                     } catch (e) {
