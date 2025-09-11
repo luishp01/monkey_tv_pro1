@@ -13,8 +13,9 @@
             width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #555;
             background-color: #1a1a2e; color: #ecf0f1; box-sizing: border-box;
         }
-        button { background-color: #3498db; cursor: pointer; border: none; }
-        button:hover { background-color: #2980b9; }
+        button { background-color: #3498db; cursor: pointer; border: none; font-weight: bold; }
+        button:hover { opacity: 0.8; }
+        button:disabled { background-color: #555; cursor: not-allowed; }
         .search-container { display: flex; gap: 10px; }
         #search-results { list-style: none; padding: 0; max-height: 250px; overflow-y: auto; }
         .result-item { display: flex; align-items: center; gap: 10px; padding: 8px; cursor: pointer; border-radius: 5px; }
@@ -25,15 +26,20 @@
         #episodes-list { list-style: none; padding: 0; }
         .episode-item { display: grid; grid-template-columns: 50px 1fr 2fr; align-items: center; gap: 10px; background-color: #1a1a2e; padding: 10px; border-radius: 5px; margin-bottom: 8px; }
         .episode-item span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* --- NUEVOS ESTILOS PARA LA LISTA DE SERIES EXISTENTES --- */
+        .existing-series-item { display: flex; justify-content: space-between; align-items: center; background-color: #1a1a2e; padding: 10px; border-radius: 5px; margin-bottom: 8px; }
+        .existing-series-item span { flex-grow: 1; padding-right: 15px; }
+        .existing-series-item .actions button { width: auto; padding: 5px 10px; font-size: 0.8em; }
+        .delete-btn { background-color: #e74c3c; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Administración de Series</h1>
 
-        <!-- SECCIÓN 1: BÚSQUEDA Y SELECCIÓN DE SERIE -->
         <div class="admin-section">
-            <h2>Paso 1: Buscar la Serie</h2>
+            <h2>Paso 1: Buscar Nueva Serie en TMDb</h2>
             <div class="search-container">
                 <input type="text" id="series-search-input" placeholder="Buscar por nombre de serie...">
                 <button id="search-series-btn">Buscar</button>
@@ -41,50 +47,53 @@
             <ul id="search-results"></ul>
         </div>
 
-        <!-- SECCIÓN 2: DETALLES DE LA SERIE Y TEMPORADAS -->
         <div class="admin-section" id="series-details-form">
             <h2>Paso 2: Revisar Detalles y Seleccionar Temporada</h2>
             <input type="hidden" id="series-id">
-            <label>Título:</label>
-            <input type="text" id="series-title" readonly>
-            <label>Sinopsis:</label>
-            <textarea id="series-overview" rows="4" readonly></textarea>
-            <label>URL Póster:</label>
-            <input type="text" id="series-poster" readonly>
-            <label>URL Fondo:</label>
-            <input type="text" id="series-backdrop" readonly>
+            <label>Título:</label> <input type="text" id="series-title">
+            <label>Sinopsis:</label> <textarea id="series-overview" rows="4"></textarea>
+            <label>URL Póster:</label> <input type="text" id="series-poster">
+            <label>URL Fondo:</label> <input type="text" id="series-backdrop">
             <hr style="border-color: #555; margin: 20px 0;">
-            <label>Seleccionar Temporada:</label>
-            <select id="season-selector"></select>
+            <label>Seleccionar Temporada:</label> <select id="season-selector"></select>
         </div>
 
-        <!-- SECCIÓN 3: GESTIÓN DE EPISODIOS -->
         <div class="admin-section" id="episodes-container">
-            <h2>Paso 3: Añadir URL de Video a los Episodios</h2>
+            <h2>Paso 3: Añadir/Editar URLs de Video a los Episodios</h2>
             <ul id="episodes-list"></ul>
-            <button id="save-series-btn" style="background-color: #2ecc71;">Guardar Serie y Episodios en Firebase</button>
+            <button id="save-series-btn" style="background-color: #2ecc71;">Guardar Cambios en Firebase</button>
+        </div>
+        
+        <!-- --- NUEVA SECCIÓN PARA SERIES EXISTENTES --- -->
+        <div class="admin-section">
+            <h2>Series Existentes en Firebase</h2>
+            <input type="text" id="existing-series-search" placeholder="Buscar en tus series guardadas...">
+            <div id="existing-series-list"></div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, collection, writeBatch } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, collection, getDocs, writeBatch, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-         const firebaseConfig = {
-          apiKey: "AIzaSyCLGiT_UeTm578cQeCwLldH50qOjounCOs",
-          authDomain: "miappdetv-db.firebaseapp.com",
-          databaseURL: "https://miappdetv-db-default-rtdb.firebaseio.com",
-          projectId: "miappdetv-db",
-          storageBucket: "miappdetv-db.firebasestorage.app",
-          messagingSenderId: "515640857376",
-          appId: "1:515640857376:web:89e5bb051ee79f030c3d45"
+        const firebaseConfig = {
+            apiKey: "AIzaSyCLGiT_UeTm578cQeCwLldH50qOjounCOs",
+            authDomain: "miappdetv-db.firebaseapp.com",
+            projectId: "miappdetv-db",
+            storageBucket: "miappdetv-db.firebasestorage.app",
+            messagingSenderId: "515640857376",
+            appId: "1:515640857376:web:89e5bb051ee79f030c3d45"
         };
+        
+        // --- CORRECCIÓN: INICIALIZAMOS TODO AFUERA PARA QUE SEA GLOBAL ---
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
         
         const TMDB_API_KEY = "6b08760aef7b20713371d73d461c9c57";
         const TMDB_API_URL = "https://api.themoviedb.org/3";
 
-        // Elementos de la UI
         const searchInput = document.getElementById('series-search-input');
         const searchBtn = document.getElementById('search-series-btn');
         const searchResults = document.getElementById('search-results');
@@ -93,9 +102,12 @@
         const seasonSelector = document.getElementById('season-selector');
         const episodesList = document.getElementById('episodes-list');
         const saveBtn = document.getElementById('save-series-btn');
+        const existingSeriesSearch = document.getElementById('existing-series-search');
+        const existingSeriesList = document.getElementById('existing-series-list');
 
         let currentSeriesData = {};
-        
+        let allExistingSeries = [];
+
         async function searchSeries() {
             const query = searchInput.value;
             if (!query) return;
@@ -106,36 +118,39 @@
             data.results.forEach(series => {
                 const li = document.createElement('li');
                 li.className = 'result-item';
-                li.innerHTML = `
-                    <img src="${series.poster_path ? 'https://image.tmdb.org/t/p/w92' + series.poster_path : 'https://via.placeholder.com/40x60'}" />
-                    <span>${series.name} (${new Date(series.first_air_date).getFullYear() || 'N/A'})</span>
-                `;
-                li.onclick = () => selectSeries(series.id);
+                li.innerHTML = `<img src="${series.poster_path ? 'https://image.tmdb.org/t/p/w92' + series.poster_path : ''}" /> <span>${series.name}</span>`;
+                li.onclick = () => selectSeriesFromTMDb(series.id);
                 searchResults.appendChild(li);
             });
         }
         
-        async function selectSeries(seriesId) {
+        async function selectSeriesFromTMDb(seriesId) {
             searchResults.innerHTML = '';
             const url = `${TMDB_API_URL}/tv/${seriesId}?api_key=${TMDB_API_KEY}&language=es-MX`;
-            const response = await fetch(url);
-            const data = await response.json();
+            const data = await (await fetch(url)).json();
             
-            currentSeriesData.id = data.id.toString();
-            currentSeriesData.titulo = data.name;
-            currentSeriesData.sinopsis = data.overview;
-            currentSeriesData.poster_url = `https://image.tmdb.org/t/p/w500${data.poster_path}`;
-            currentSeriesData.backdrop_url = `https://image.tmdb.org/t/p/w1280${data.backdrop_path}`;
-            currentSeriesData.seasons = data.seasons.filter(s => s.season_number > 0); // Excluir especiales
+            currentSeriesData = {
+                id: data.id.toString(),
+                titulo: data.name,
+                sinopsis: data.overview,
+                poster_url: `https://image.tmdb.org/t/p/w500${data.poster_path}`,
+                backdrop_url: `https://image.tmdb.org/t/p/w1280${data.backdrop_path}`,
+                seasons: data.seasons.filter(s => s.season_number > 0)
+            };
 
-            document.getElementById('series-id').value = currentSeriesData.id;
-            document.getElementById('series-title').value = currentSeriesData.titulo;
-            document.getElementById('series-overview').value = currentSeriesData.sinopsis;
-            document.getElementById('series-poster').value = currentSeriesData.poster_url;
-            document.getElementById('series-backdrop').value = currentSeriesData.backdrop_url;
+            fillSeriesForm(currentSeriesData);
+            loadSeasonFromTMDb(currentSeriesData.id, 1);
+        }
+        
+        function fillSeriesForm(seriesData) {
+            document.getElementById('series-id').value = seriesData.id;
+            document.getElementById('series-title').value = seriesData.titulo;
+            document.getElementById('series-overview').value = seriesData.sinopsis;
+            document.getElementById('series-poster').value = seriesData.poster_url;
+            document.getElementById('series-backdrop').value = seriesData.backdrop_url;
             
             seasonSelector.innerHTML = '';
-            currentSeriesData.seasons.forEach(season => {
+            seriesData.seasons.forEach(season => {
                 const option = document.createElement('option');
                 option.value = season.season_number;
                 option.textContent = season.name;
@@ -144,116 +159,147 @@
             
             seriesDetailsForm.style.display = 'block';
             episodesContainer.style.display = 'block';
-            loadSeason(data.id, seasonSelector.value);
         }
 
-        async function loadSeason(seriesId, seasonNumber) {
+        async function loadSeasonFromTMDb(seriesId, seasonNumber, existingEpisodes = []) {
             const url = `${TMDB_API_URL}/tv/${seriesId}/season/${seasonNumber}?api_key=${TMDB_API_KEY}&language=es-MX`;
-            const response = await fetch(url);
-            const data = await response.json();
+            const data = await (await fetch(url)).json();
             
             episodesList.innerHTML = '';
             data.episodes.forEach(ep => {
+                const existingEp = existingEpisodes.find(e => e.numero === ep.episode_number);
                 const li = document.createElement('li');
                 li.className = 'episode-item';
-                li.dataset.episodeId = ep.id;
                 li.dataset.episodeNumber = ep.episode_number;
-                li.dataset.episodeTitle = ep.name;
-                li.dataset.episodeOverview = ep.overview;
 
                 li.innerHTML = `
                     <span><b>E${ep.episode_number}</b></span>
                     <span>${ep.name}</span>
-                    <input type="text" placeholder="Pega la URL del video aquí (.mkv, .mp4, etc)...">
+                    <input type="text" placeholder="URL del video..." value="${existingEp ? existingEp.video_url : ''}">
                 `;
                 episodesList.appendChild(li);
             });
         }
         
         async function saveSeriesToFirebase() {
-            if (!currentSeriesData.id) {
-                alert("Primero busca y selecciona una serie.");
-                return;
-            }
+            const seriesId = document.getElementById('series-id').value;
+            if (!seriesId) { alert("No hay una serie seleccionada."); return; }
             
             saveBtn.disabled = true;
             saveBtn.textContent = "Guardando...";
 
             try {
-                // Usamos un "batch write" para guardar todo en una sola operación
                 const batch = writeBatch(db);
-
-                // 1. Guardar los datos principales de la serie
-                const seriesDocRef = doc(db, "series", currentSeriesData.id);
+                const seriesDocRef = doc(db, "series", seriesId);
+                
+                // Actualizamos los datos principales (que el usuario pudo haber editado)
                 batch.set(seriesDocRef, {
-                    id: currentSeriesData.id,
-                    titulo: currentSeriesData.titulo,
-                    sinopsis: currentSeriesData.sinopsis,
-                    poster_url: currentSeriesData.poster_url,
-                    backdrop_url: currentSeriesData.backdrop_url
+                    id: seriesId,
+                    titulo: document.getElementById('series-title').value,
+                    sinopsis: document.getElementById('series-overview').value,
+                    poster_url: document.getElementById('series-poster').value,
+                    backdrop_url: document.getElementById('series-backdrop').value
                 });
 
-                // 2. Recorrer las temporadas y episodios
-                for (const season of currentSeriesData.seasons) {
-                    const seasonDocRef = doc(db, `series/${currentSeriesData.id}/temporadas`, `temporada_${season.season_number}`);
-                    batch.set(seasonDocRef, {
-                        nombre: season.name,
-                        numero: season.season_number,
-                        poster_url: `https://image.tmdb.org/t/p/w500${season.poster_path}`
-                    });
-
-                    // Cargar los detalles de los episodios de esta temporada
-                    const url = `${TMDB_API_URL}/tv/${currentSeriesData.id}/season/${season.season_number}?api_key=${TMDB_API_KEY}&language=es-MX`;
-                    const response = await fetch(url);
-                    const seasonDetails = await response.json();
-
-                    for (const episode of seasonDetails.episodes) {
-                        const episodeDocRef = doc(db, `series/${currentSeriesData.id}/temporadas/temporada_${season.season_number}/episodios`, `episodio_${episode.episode_number}`);
-                        // Buscamos el input de video correspondiente en la lista visible
-                        const episodeInput = document.querySelector(`.episode-item[data-episode-number='${episode.episode_number}'] input`);
-                        const videoUrl = episodeInput ? episodeInput.value.trim() : '';
-
-                        batch.set(episodeDocRef, {
-                            titulo: episode.name,
-                            numero: episode.episode_number,
-                            sinopsis_ep: episode.overview,
-                            video_url: videoUrl
-                        });
-                    }
-                }
+                const seasonNumber = seasonSelector.value;
+                const seasonDocRef = doc(collection(seriesDocRef, "temporadas"), `temporada_${seasonNumber}`);
                 
-                // 3. Ejecutar todas las operaciones de guardado
-                await batch.commit();
+                const seasonData = currentSeriesData.seasons.find(s => s.season_number == seasonNumber);
+                batch.set(seasonDocRef, {
+                    nombre: seasonData.name,
+                    numero: seasonData.season_number,
+                    poster_url: `https://image.tmdb.org/t/p/w500${seasonData.poster_path}`
+                });
 
-                alert(`¡Serie "${currentSeriesData.titulo}" guardada con éxito en Firebase!`);
-                resetForm();
+                document.querySelectorAll('.episode-item').forEach(item => {
+                    const epNumber = item.dataset.episodeNumber;
+                    const videoUrl = item.querySelector('input').value.trim();
+                    const episodeDocRef = doc(collection(seasonDocRef, "episodios"), `episodio_${epNumber}`);
+                    batch.set(episodeDocRef, { video_url: videoUrl }, { merge: true });
+                });
+                
+                await batch.commit();
+                alert(`¡Datos de la serie guardados con éxito!`);
+                await loadExistingSeries(); // Recargar la lista de abajo
 
             } catch (e) {
-                console.error("Error masivo al guardar la serie:", e);
-                alert("Ocurrió un error muy grave al intentar guardar todo. Revisa la consola (F12).");
+                console.error("Error al guardar la serie:", e);
+                alert("Ocurrió un error al guardar. Revisa la consola (F12).");
             } finally {
                 saveBtn.disabled = false;
-                saveBtn.textContent = "Guardar Serie y Episodios en Firebase";
+                saveBtn.textContent = "Guardar Cambios en Firebase";
             }
         }
         
-        function resetForm() {
-            currentSeriesData = {};
-            seriesDetailsForm.style.display = 'none';
-            episodesContainer.style.display = 'none';
-            searchInput.value = '';
-        }
+        // --- NUEVAS FUNCIONES PARA CARGAR, EDITAR Y BORRAR ---
         
-        // --- EVENT LISTENERS ---
+        async function loadExistingSeries() {
+            const snapshot = await getDocs(collection(db, "series"));
+            allExistingSeries = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderExistingSeries(allExistingSeries);
+        }
+
+        function renderExistingSeries(seriesArray) {
+            existingSeriesList.innerHTML = '';
+            seriesArray.forEach(series => {
+                const div = document.createElement('div');
+                div.className = 'existing-series-item';
+                div.innerHTML = `
+                    <span>${series.titulo} (ID: ${series.id})</span>
+                    <div class="actions">
+                        <button class="edit-btn">Editar Episodios</button>
+                        <button class="delete-btn">Eliminar Serie</button>
+                    </div>
+                `;
+                div.querySelector('.edit-btn').onclick = () => editSeries(series.id);
+                div.querySelector('.delete-btn').onclick = () => deleteSeries(series.id, series.titulo);
+                existingSeriesList.appendChild(div);
+            });
+        }
+
+        async function editSeries(seriesId) {
+            // Reutilizamos la función de TMDb para volver a cargar los datos frescos de la serie
+            await selectSeriesFromTMDb(seriesId);
+            
+            // Ahora, cargamos las URLs de los episodios que ya tenemos guardadas
+            const seasonNumber = seasonSelector.value;
+            const episodesSnapshot = await getDocs(collection(db, `series/${seriesId}/temporadas/temporada_${seasonNumber}/episodios`));
+            const existingEpisodes = episodesSnapshot.docs.map(doc => doc.data());
+            
+            // Volvemos a cargar los episodios, pero esta vez pasando las URLs existentes
+            await loadSeasonFromTMDb(seriesId, seasonNumber, existingEpisodes);
+            window.scrollTo(0, 0);
+        }
+
+        async function deleteSeries(seriesId, seriesTitle) {
+            if (confirm(`¿Estás SEGURO de que quieres eliminar TODA la serie "${seriesTitle}" y TODOS sus episodios? Esta acción no se puede deshacer.`)) {
+                try {
+                    // Borrar un documento con subcolecciones es complejo, lo hacemos de la forma más simple:
+                    // Borramos el documento principal. Las subcolecciones quedarán huérfanas pero inaccesibles.
+                    await deleteDoc(doc(db, "series", seriesId));
+                    alert("Serie eliminada.");
+                    loadExistingSeries();
+                } catch (e) { console.error("Error al eliminar:", e); }
+            }
+        }
+
+        existingSeriesSearch.addEventListener('input', () => {
+            const query = existingSeriesSearch.value.toLowerCase();
+            const filtered = allExistingSeries.filter(s => s.titulo.toLowerCase().includes(query));
+            renderExistingSeries(filtered);
+});
+        
         searchBtn.addEventListener('click', searchSeries);
         searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') searchSeries(); });
         seasonSelector.addEventListener('change', () => {
-            loadSeason(document.getElementById('series-id').value, seasonSelector.value);
+            editSeries(document.getElementById('series-id').value);
         });
         saveBtn.addEventListener('click', saveSeriesToFirebase);
 
-        // Autenticación anónima para poder escribir en la BD (si tus reglas lo requieren)
-        signInAnonymously(auth).catch(error => console.error("Error de autenticación anónima:", error));
+        // Carga inicial
+        signInAnonymously(auth).then(() => {
+            loadExistingSeries();
+        }).catch(error => console.error("Error de autenticación:", error));
 
     </script>
 </body>
