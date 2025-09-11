@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="series-title-page">Cargando...</title>
+    <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root { --dark-bg: #1a1a2e; --dark-card: #2c2c44; --red-heart: #e74c3c; --text-light: #ecf0f1; --plyr-color-main: var(--red-heart); }
+        body { font-family: 'Arial', sans-serif; background-color: var(--dark-bg); color: var(--text-light); margin: 0; padding: 0; }
+        .series-header { position: relative; height: 50vh; }
+        .backdrop-img { width: 100%; height: 100%; object-fit: cover; filter: brightness(0.5); }
+        .series-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; background: linear-gradient(to top, var(--dark-bg), transparent); display: flex; gap: 20px; align-items: flex-end; }
+        .poster-img { width: 120px; border-radius: 5px; box-shadow: 0 5px 15px black; }
+        .series-details h1 { margin: 0 0 10px; }
+        .series-details p { margin: 0; font-size: 0.9em; line-height: 1.5; max-height: 70px; overflow: hidden; }
+        .episodes-section { padding: 20px; }
+        .season-selector { width: 100%; padding: 10px; background-color: var(--dark-card); color: var(--text-light); border: 1px solid #555; border-radius: 5px; font-size: 1.1em; margin-bottom: 20px; }
+        .episode-list { list-style: none; padding: 0; margin: 0; }
+        .episode-item { display: flex; align-items: center; gap: 15px; padding: 15px; background-color: var(--dark-card); border-radius: 5px; margin-bottom: 10px; cursor: pointer; transition: background-color 0.2s; }
+        .episode-item:hover { background-color: #3c3c54; }
+        .episode-number { font-size: 1.2em; font-weight: bold; color: #95a5a6; }
+        .episode-title { font-size: 1em; }
+        #video-player-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 2000; }
+        .player-container { width: 100%; height: 100%; }
+    </style>
+</head>
+<body>
+    <div id="series-content">
+        <header class="series-header">
+            <img id="series-backdrop" src="" class="backdrop-img">
+            <div class="series-info">
+                <img id="series-poster" src="" class="poster-img">
+                <div class="series-details">
+                    <h1 id="series-title"></h1>
+                    <p id="series-overview"></p>
+                </div>
+            </div>
+        </header>
+        <main class="episodes-section">
+            <select id="season-selector" class="season-selector"></select>
+            <ul id="episodes-list" class="episode-list"></ul>
+        </main>
+    </div>
+    
+    <div id="video-player-modal">
+        <div class="player-container">
+            <video id="video-player" playsinline controls></video>
+        </div>
+    </div>
+
+    <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, doc, getDoc, collection, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = { /* ... tu config ... */ };
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        const seriesId = new URLSearchParams(window.location.search).get('id');
+        const seasonSelector = document.getElementById('season-selector');
+        const episodesList = document.getElementById('episodes-list');
+        const videoPlayerModal = document.getElementById('video-player-modal');
+        let player;
+        
+        async function loadSeriesDetails() {
+            if (!seriesId) { document.body.innerHTML = "<h1>ID de serie no encontrado</h1>"; return; }
+            const seriesRef = doc(db, "series", seriesId);
+            const seriesSnap = await getDoc(seriesRef);
+            if (!seriesSnap.exists()) { document.body.innerHTML = "<h1>Serie no encontrada</h1>"; return; }
+            
+            const seriesData = seriesSnap.data();
+            document.getElementById('series-title-page').textContent = seriesData.titulo;
+            document.getElementById('series-backdrop').src = seriesData.backdrop_url;
+            document.getElementById('series-poster').src = seriesData.poster_url;
+            document.getElementById('series-title').textContent = seriesData.titulo;
+            document.getElementById('series-overview').textContent = seriesData.sinopsis;
+
+            const temporadasRef = collection(db, `series/${seriesId}/temporadas`);
+            const q = query(temporadasRef, orderBy("numero"));
+            const temporadasSnap = await getDocs(q);
+            
+            temporadasSnap.forEach(temporadaDoc => {
+                const temporadaData = temporadaDoc.data();
+                const option = document.createElement('option');
+                option.value = temporadaDoc.id; // e.g., "temporada_1"
+                option.textContent = temporadaData.nombre;
+                seasonSelector.appendChild(option);
+            });
+
+            if (temporadasSnap.docs.length > 0) {
+                loadEpisodes(temporadasSnap.docs[0].id);
+            }
+        }
+        
+        async function loadEpisodes(temporadaId) {
+            episodesList.innerHTML = '<li>Cargando episodios...</li>';
+            const episodiosRef = collection(db, `series/${seriesId}/temporadas/${temporadaId}/episodios`);
+            const q = query(episodiosRef, orderBy("numero"));
+            const episodiosSnap = await getDocs(q);
+            episodesList.innerHTML = '';
+            
+            episodiosSnap.forEach(epDoc => {
+                const epData = epDoc.data();
+                const li = document.createElement('li');
+                li.className = 'episode-item';
+                li.innerHTML = `
+                    <span class="episode-number">${epData.numero}</span>
+                    <span class="episode-title">${epData.titulo}</span>
+                    <i class="fas fa-play"></i>
+                `;
+                if(epData.video_url) {
+                    li.onclick = () => playEpisode(epData.video_url);
+                } else {
+                    li.style.cursor = 'not-allowed';
+                    li.style.opacity = '0.5';
+                }
+                episodesList.appendChild(li);
+            });
+        }
+
+        function playEpisode(videoUrl) {
+            videoPlayerModal.style.display = 'flex';
+            if (player) player.destroy();
+            player = new Plyr('#video-player');
+            player.source = {
+                type: 'video',
+                sources: [{ src: videoUrl }],
+            };
+            player.play();
+            try {
+                player.fullscreen.enter();
+                screen.orientation?.lock('landscape');
+            } catch(e) {}
+            
+            player.on('exitfullscreen', () => {
+                player.pause();
+                videoPlayerModal.style.display = 'none';
+                screen.orientation?.unlock();
+            });
+        }
+
+        seasonSelector.addEventListener('change', () => loadEpisodes(seasonSelector.value));
+
+        loadSeriesDetails();
+    </script>
+</body>
+</html>
