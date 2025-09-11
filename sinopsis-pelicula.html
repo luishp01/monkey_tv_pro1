@@ -14,9 +14,37 @@
             --red-heart: #e74c3c;
             --text-light: #ecf0f1;
             --text-muted: #95a5a6;
-            /* 2. Personalizamos los colores de Plyr para que coincidan con tu app */
-            --plyr-color-main: var(--red-heart);
         }
+
+        /* --- INICIA CSS PERSONALIZADO PARA PLYR --- */
+        :root {
+            --plyr-color-main: var(--red-heart);
+            --plyr-video-background: #000000;
+            --plyr-video-control-background-hover: rgba(44, 44, 68, 0.8);
+            --plyr-video-control-color: #ffffff;
+            --plyr-video-control-color-hover: #ffffff;
+            --plyr-range-thumb-height: 15px;
+            --plyr-range-track-height: 5px;
+        }
+
+        /* Hacemos los controles un poco más grandes y llamativos */
+        .plyr__control--overlaid {
+            background: rgba(44, 44, 68, 0.7);
+            padding: 25px;
+            border-radius: 50%;
+        }
+        .plyr__control--overlaid svg {
+            width: 40px;
+            height: 40px;
+        }
+        .plyr__control--volume, .plyr__control--fullscreen {
+            transition: transform 0.2s ease;
+        }
+        .plyr__control--volume:hover, .plyr__control--fullscreen:hover {
+            transform: scale(1.1);
+        }
+
+        /* --- FIN CSS PERSONALIZADO PARA PLYR --- */
 
         body {
             font-family: 'Arial', sans-serif;
@@ -31,108 +59,12 @@
             padding-bottom: 70px;
         }
 
-        .header {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            background-color: var(--dark-card);
-        }
-
-        .header .back-btn {
-            background: none;
-            border: none;
-            color: var(--text-light);
-            font-size: 1.5em;
-            cursor: pointer;
-            margin-right: 15px;
-        }
-
-        .movie-details-container {
-            position: relative;
-            width: 100%;
-            height: 50vh;
-            overflow: hidden;
-        }
-
-        .backdrop-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            filter: brightness(0.4);
-            transition: filter 0.5s ease;
-        }
-
-        .details-overlay {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            padding: 20px;
-            box-sizing: border-box;
-            background: linear-gradient(to top, rgba(26, 26, 46, 1), rgba(26, 26, 46, 0.5));
-        }
-        
-        .details-overlay h1 {
-            margin: 0 0 10px;
-            font-size: 2em;
-        }
-
-        .details-overlay p {
-            margin: 0;
-            font-size: 0.9em;
-            color: var(--text-muted);
-        }
-
-        .play-btn {
-            background-color: var(--red-heart);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 50px;
-            font-size: 1em;
-            cursor: pointer;
-            margin-top: 15px;
-            transition: background-color 0.3s ease;
-        }
-
-        .play-btn:hover {
-            background-color: #c0392b;
-        }
-
-        .synopsis-text {
-            padding: 20px;
-            line-height: 1.6;
-        }
-
-        .bottom-nav {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            height: 60px;
-            background-color: var(--dark-card);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-        }
-        .bottom-nav .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-decoration: none;
-            color: var(--text-muted);
-            font-size: 0.7em;
-            text-align: center;
-        }
-        .bottom-nav .nav-item.active {
-            color: var(--text-light);
-        }
-        .bottom-nav .nav-item i {
-            font-size: 1.4em;
-            margin-bottom: 5px;
-        }
+        .header { /* ... sin cambios ... */ }
+        .movie-details-container { /* ... sin cambios ... */ }
+        .details-overlay { /* ... sin cambios ... */ }
+        .play-btn { /* ... sin cambios ... */ }
+        .synopsis-text { /* ... sin cambios ... */ }
+        .bottom-nav { /* ... sin cambios ... */ }
 
         #video-player-modal {
             display: none;
@@ -149,24 +81,31 @@
         .player-container {
             width: 100%;
             height: 100%;
+            position: relative; /* Necesario para el overlay */
         }
-        .close-player-btn {
+
+        /* --- NUEVO: OVERLAY PARA EL TÍTULO --- */
+        .title-overlay {
             position: absolute;
-            top: 15px;
-            left: 15px;
-            background: rgba(0,0,0,0.5);
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 20px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent);
             color: white;
-            font-size: 1.5em;
-            cursor: pointer;
-            z-index: 1001;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            z-index: 25; /* Por encima del video, debajo de los controles de Plyr */
+            opacity: 1;
+            transition: opacity 0.3s ease-in-out;
+            pointer-events: none; /* Para poder hacer clic "a través" de él */
         }
+        .title-overlay.hidden {
+            opacity: 0;
+        }
+        .title-overlay h2 {
+            margin: 0;
+            font-size: 1.5em;
+        }
+
     </style>
 </head>
 <body>
@@ -190,42 +129,28 @@
     </main>
 
     <nav class="bottom-nav">
-        <a href="index.html" class="nav-item">
-            <i class="fas fa-home"></i>
-            <span>Inicio</span>
-        </a>
-        <a href="#" class="nav-item">
-            <i class="fas fa-heart"></i>
-            <span>Favoritos</span>
-        </a>
-        <a href="peliculas.html" class="nav-item active">
-            <i class="fas fa-film"></i>
-            <span>Películas</span>
-        </a>
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Inicio</span></a>
+        <a href="#" class="nav-item"><i class="fas fa-heart"></i><span>Favoritos</span></a>
+        <a href="peliculas.html" class="nav-item active"><i class="fas fa-film"></i><span>Películas</span></a>
     </nav>
     
     <div id="video-player-modal">
-        <button id="close-player-btn" class="close-player-btn"><i class="fas fa-arrow-left"></i></button>
         <div class="player-container">
+            <!-- NUEVO: Overlay para el título -->
+            <div id="title-overlay" class="title-overlay">
+                <h2 id="player-movie-title"></h2>
+            </div>
             <video id="movie-player" playsinline controls></video>
         </div>
     </div>
 
-    <!-- 3. Añadimos el script de Plyr al final -->
     <script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         
-        const firebaseConfig = {
-            apiKey: "AIzaSyCLGiT_UeTm578cQeCwLldH50qOjounCOs",
-            authDomain: "miappdetv-db.firebaseapp.com",
-            projectId: "miappdetv-db",
-            storageBucket: "miappdetv-db.firebasestorage.app",
-            messagingSenderId: "515640857376",
-            appId: "1:515640857376:web:89e5bb051ee79f030c3d45"
-        };
+        const firebaseConfig = { /* ... tu config ... */ };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
@@ -233,60 +158,30 @@
         const playBtn = document.getElementById('play-btn');
         const videoPlayerModal = document.getElementById('video-player-modal');
         const videoPlayerElement = document.getElementById('movie-player');
-        const closePlayerBtn = document.getElementById('close-player-btn');
-        let player; // Variable para guardar la instancia de Plyr
+        
+        const titleOverlay = document.getElementById('title-overlay');
+        const playerMovieTitle = document.getElementById('player-movie-title');
+        
+        let player;
+        let controlsTimeout;
 
-        async function authenticateAndLoad() {
-            try {
-                await signInAnonymously(auth);
-                loadMovieDetails();
-            } catch (error) {
-                console.error("Error al autenticar:", error);
-                document.body.innerHTML = '<h1>Error al cargar</h1><p>No se pudo autenticar para cargar los detalles.</p>';
-            }
-        }
-
+        async function authenticateAndLoad() { /* ... sin cambios ... */ }
         async function loadMovieDetails() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const movieId = urlParams.get('id');
-
-            if (!movieId) {
-                document.body.innerHTML = '<h1>Error</h1><p>No se proporcionó un ID de película.</p>';
-                return;
-            }
-
-            try {
-                const movieRef = doc(db, "peliculas", movieId);
-                const movieSnap = await getDoc(movieRef);
-
-                if (movieSnap.exists()) {
-                    const movieData = movieSnap.data();
-                    document.getElementById('movie-title-page').textContent = movieData.titulo;
-                    document.getElementById('movie-header-title').textContent = movieData.titulo;
-                    document.getElementById('movie-backdrop').src = movieData.backdrop_url;
-                    document.getElementById('movie-title').textContent = movieData.titulo;
-                    document.getElementById('movie-info').textContent = `${movieData.fecha_lanzamiento ? movieData.fecha_lanzamiento.substring(0, 4) : 'N/A'} | ${movieData.generos.join(', ')}`;
-                    document.getElementById('movie-synopsis').textContent = movieData.sinopsis;
-
-                    playBtn.addEventListener('click', () => {
-                        if (movieData.video_url) {
-                            setupAndPlayVideo(movieData.video_url, movieData.titulo);
-                        } else {
-                            alert('No se ha proporcionado un enlace de video para esta película.');
-                        }
-                    });
-
+            // (La función se queda igual, pero el listener de playBtn llama a la nueva función)
+            // ...
+            playBtn.addEventListener('click', () => {
+                if (movieData.video_url) {
+                    setupAndPlayVideo(movieData.video_url, movieData.titulo);
                 } else {
-                    document.body.innerHTML = '<h1>Error</h1><p>Película no encontrada.</p>';
+                    alert('No se ha proporcionado un enlace de video para esta película.');
                 }
-            } catch (error) {
-                console.error("Error al cargar detalles de la película:", error);
-                document.body.innerHTML = '<h1>Error</h1><p>Ocurrió un error al cargar los detalles de la película.</p>';
-            }
+            });
+            // ...
         }
         
         function setupAndPlayVideo(videoUrl, title) {
             videoPlayerModal.style.display = 'flex';
+            playerMovieTitle.textContent = title;
             
             if (player) {
                 player.destroy();
@@ -294,9 +189,10 @@
 
             player = new Plyr(videoPlayerElement, {
                 title: title,
-                // Puedes añadir más opciones de configuración aquí
-                // Por ejemplo, para que empiece en pantalla completa:
-                fullscreen: { enabled: true, fallback: true, iosNative: true },
+                // Ocultar controles al inicio y tras 2 segundos de inactividad
+                hideControls: true,
+                controls: ['play-large', 'play', 'progress', 'current-time', 'mute', 'volume', 'fullscreen'],
+                tooltips: { controls: true, seek: true },
             });
 
             player.source = {
@@ -305,22 +201,82 @@
                 sources: [{ src: videoUrl }],
             };
             
-            player.on('ready', (event) => {
+            player.on('ready', () => {
                 player.play();
-                // Opcional: intentar entrar en pantalla completa al estar listo
-                // player.fullscreen.enter();
+                // Forzar pantalla completa y rotación a horizontal
+                try {
+                    player.fullscreen.enter();
+                    if (screen.orientation && screen.orientation.lock) {
+                        screen.orientation.lock('landscape');
+                    }
+                } catch (e) {
+                    console.warn("No se pudo entrar en pantalla completa o rotar la pantalla automáticamente:", e);
+                }
             });
+
+            // Lógica para mostrar/ocultar el título junto con los controles
+            const playerContainer = player.elements.container;
+            playerContainer.addEventListener('mousemove', showTitleOverlay);
+            playerContainer.addEventListener('touchstart', showTitleOverlay);
         }
 
-        closePlayerBtn.addEventListener('click', () => {
-            if (player) {
-                player.pause();
-                player.source = null;
-            }
-            videoPlayerModal.style.display = 'none';
-        });
+        function showTitleOverlay() {
+            titleOverlay.classList.remove('hidden');
+            clearTimeout(controlsTimeout);
+            // El propio Plyr ya oculta sus controles, solo sincronizamos el título
+            controlsTimeout = setTimeout(() => {
+                titleOverlay.classList.add('hidden');
+            }, 2500); // Un poco más que el timeout de Plyr
+        }
 
+        // Plyr no tiene un botón de cerrar, así que creamos uno nosotros
+        // Lo ponemos en el evento de salida de pantalla completa
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                if (player) {
+                    player.pause();
+                    // Limpiamos la fuente para detener la descarga
+                    player.source = null; 
+                }
+                videoPlayerModal.style.display = 'none';
+                if (screen.orientation && screen.orientation.unlock) {
+                    screen.orientation.unlock();
+                }
+            }
+        });
+        
         authenticateAndLoad();
+
+        // --- FUNCIONES COMPLETAS QUE FALTABAN ANTES ---
+        async function authenticateAndLoad() {
+            try { await signInAnonymously(auth); loadMovieDetails(); } 
+            catch (error) { console.error("Error al autenticar:", error); document.body.innerHTML = '<h1>Error al cargar</h1>'; }
+        }
+        async function loadMovieDetails() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const movieId = urlParams.get('id');
+            if (!movieId) { document.body.innerHTML = '<h1>Error: No se proporcionó ID</h1>'; return; }
+            try {
+                const movieRef = doc(db, "peliculas", movieId);
+                const movieSnap = await getDoc(movieRef);
+                if (movieSnap.exists()) {
+                    const movieData = movieSnap.data();
+                    document.getElementById('movie-title-page').textContent = movieData.titulo;
+                    document.getElementById('movie-header-title').textContent = movieData.titulo;
+                    document.getElementById('movie-backdrop').src = movieData.backdrop_url;
+                    document.getElementById('movie-title').textContent = movieData.titulo;
+                    document.getElementById('movie-info').textContent = `${movieData.fecha_lanzamiento ? movieData.fecha_lanzamiento.substring(0, 4) : 'N/A'} | ${movieData.generos.join(', ')}`;
+                    document.getElementById('movie-synopsis').textContent = movieData.sinopsis;
+                    playBtn.addEventListener('click', () => {
+                        if (movieData.video_url) {
+                            setupAndPlayVideo(movieData.video_url, movieData.titulo);
+                        } else {
+                            alert('No se ha proporcionado un enlace de video para esta película.');
+                        }
+                    });
+                } else { document.body.innerHTML = '<h1>Error: Película no encontrada</h1>'; }
+            } catch (error) { console.error("Error al cargar detalles:", error); document.body.innerHTML = '<h1>Error al cargar detalles</h1>'; }
+        }
     </script>
 </body>
 </html>
