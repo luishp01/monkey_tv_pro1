@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Prueba de Conexión a Firebase</title>
+    <style>
+        body { font-family: monospace; background-color: #1a1a2e; color: #ecf0f1; padding: 20px; font-size: 16px; }
+        h1 { color: #e74c3c; }
+        .success { color: #2ecc71; }
+        .fail { color: #e74c3c; }
+        pre { background-color: #2c2c44; padding: 15px; border-radius: 5px; white-space: pre-wrap; word-wrap: break-word; }
+    </style>
+</head>
+<body>
+    <h1>Diagnóstico de Firestore</h1>
+    <p>Intentando conectar y leer los datos...</p>
+    <div id="results"></div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+          apiKey: "AIzaSyCLGiT_UeTm578cQeCwLldH50qOjounCOs",
+          authDomain: "miappdetv-db.firebaseapp.com",
+          projectId: "miappdetv-db",
+          storageBucket: "miappdetv-db.firebasestorage.app",
+          messagingSenderId: "515640857376",
+          appId: "1:515640857376:web:89e5bb051ee79f030c3d45"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const resultsDiv = document.getElementById('results');
+
+        async function runTest() {
+            const seriesId = "71411";
+            const ruta = `series/${seriesId}/temporadas`;
+            let output = '';
+
+            output += `<p><strong>ID de la Serie a Probar:</strong> ${seriesId}</p>`;
+            output += `<p><strong>Ruta de la subcolección:</strong> ${ruta}</p><hr>`;
+
+            try {
+                const temporadasRef = collection(db, ruta);
+                const querySnapshot = await getDocs(temporadasRef);
+
+                output += `<h2>Resultado de la Consulta:</h2>`;
+
+                if (querySnapshot.empty) {
+                    output += `<p class="fail">FALLO: La consulta a la subcolección 'temporadas' NO DEVOLVIÓ NADA.</p>`;
+                    output += `<p>Esto confirma que el problema es de acceso a la subcolección, probablemente por las reglas o un problema de indexación raro.</p>`;
+                } else {
+                    output += `<p class="success">¡ÉXITO! Se encontraron ${querySnapshot.size} temporada(s).</p>`;
+                    output += `<h3>Datos encontrados:</h3>`;
+                    
+                    querySnapshot.forEach(doc => {
+                        output += `<pre>ID del Documento: ${doc.id}\nDatos: ${JSON.stringify(doc.data(), null, 2)}</pre>`;
+                    });
+                }
+
+            } catch (error) {
+                output += `<h2 class="fail">ERROR CATASTRÓFICO DURANTE LA PRUEBA:</h2>`;
+                output += `<pre>${error.toString()}</pre>`;
+                output += `<p>Esto usualmente significa que las reglas de seguridad están bloqueando la lectura de forma muy agresiva.</p>`
+            }
+
+            resultsDiv.innerHTML = output;
+        }
+
+        runTest();
+    </script>
+</body>
+</html>
