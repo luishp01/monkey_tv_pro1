@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale-1.0">
     <title id="series-title-page">Cargando...</title>
     <link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -21,7 +21,7 @@
         .episode-item { display: flex; align-items: center; gap: 15px; padding: 15px; background-color: var(--dark-card); border-radius: 5px; margin-bottom: 10px; cursor: pointer; transition: background-color 0.2s; }
         .episode-item:hover { background-color: #3c3c54; }
         .episode-number { font-size: 1.2em; font-weight: bold; color: #95a5a6; }
-        .episode-title { font-size: 1em; }
+        .episode-title { font-size: 1em; flex-grow: 1; }
         #video-player-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 2000; }
         .player-container { width: 100%; height: 100%; }
     </style>
@@ -66,11 +66,11 @@
           appId: "1:515640857376:web:89e5bb051ee79f030c3d45"
         };
 
-        // --- LÍNEAS CORREGIDAS Y AÑADIDAS ---
+        // --- ESTAS LÍNEAS SON LAS IMPORTANTES QUE SOLUCIONAN EL ERROR ---
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app); // Ahora 'db' está definido
+        const db = getFirestore(app); // Ahora 'db' está definido correctamente
         const auth = getAuth(app);
-        // ------------------------------------
+        // ----------------------------------------------------------------
 
         const seriesId = new URLSearchParams(window.location.search).get('id');
         const seasonSelector = document.getElementById('season-selector');
@@ -89,32 +89,31 @@
             document.getElementById('series-backdrop').src = seriesData.backdrop_url || seriesData.poster_url;
             document.getElementById('series-poster').src = seriesData.poster_url;
             document.getElementById('series-title').textContent = seriesData.titulo;
-            document.getElementById('series-overview').textContent = seriesData.sinopsis; // Asumiendo que guardas sinopsis
+            document.getElementById('series-overview').textContent = seriesData.sinopsis;
 
             const temporadasRef = collection(db, `series/${seriesId}/temporadas`);
-            
-            // TMDb a veces crea una "Temporada 0" para especiales, la filtramos
             const temporadasSnap = await getDocs(temporadasRef);
             const temporadas = temporadasSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-            // Ordenamos por número de temporada (extrayendo el número del id "temporada_X")
             temporadas.sort((a, b) => {
                 const numA = parseInt(a.id.split('_')[1] || 0);
                 const numB = parseInt(b.id.split('_')[1] || 0);
                 return numA - numB;
             });
             
-            seasonSelector.innerHTML = ''; // Limpiamos antes de añadir
+            seasonSelector.innerHTML = '';
             temporadas.forEach(temporada => {
-                const option = document.createElement('option');
-                option.value = temporada.id; // e.g., "temporada_1"
-                // El nombre de la temporada no lo guardabas, así que lo generamos
-                option.textContent = `Temporada ${temporada.id.split('_')[1]}`; 
-                seasonSelector.appendChild(option);
+                const numTemporada = temporada.id.split('_')[1];
+                if (parseInt(numTemporada) > 0) { // Omitimos la temporada 0 de especiales
+                    const option = document.createElement('option');
+                    option.value = temporada.id;
+                    option.textContent = `Temporada ${numTemporada}`; 
+                    seasonSelector.appendChild(option);
+                }
             });
 
-            if (temporadas.length > 0) {
-                loadEpisodes(temporadas[0].id);
+            if (seasonSelector.options.length > 0) {
+                loadEpisodes(seasonSelector.value); // Carga episodios de la primera temporada en la lista
             } else {
                 episodesList.innerHTML = '<li>No hay temporadas para esta serie.</li>';
             }
@@ -138,9 +137,7 @@
                 li.className = 'episode-item';
                 li.innerHTML = `
                     <span class="episode-number">${epData.numero}</span>
-                    <div style="flex-grow: 1;">
-                        <span class="episode-title">${epData.titulo}</span>
-                    </div>
+                    <span class="episode-title">${epData.titulo}</span>
                     <i class="fas fa-play"></i>
                 `;
                 if(epData.video_url && epData.video_url.trim() !== '') {
@@ -180,7 +177,6 @@
 
         seasonSelector.addEventListener('change', () => loadEpisodes(seasonSelector.value));
 
-        // --- ESTRUCTURA DE CARGA MEJORADA ---
         async function main() {
             try {
                 await signInAnonymously(auth);
@@ -192,7 +188,6 @@
         }
 
         main();
-        // ------------------------------------
     </script>
 </body>
 </html>
