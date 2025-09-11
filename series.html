@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Series - MonkeyTV PRO</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root { --dark-bg: #141414; --dark-card: #1a1a2e; --red-main: #e50914; --text-light: #ffffff; --text-muted: #95a5a6; }
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: var(--dark-bg); color: var(--text-light); margin: 0; padding-bottom: 70px; }
+        .header { background: linear-gradient(to bottom, rgba(20, 20, 20, 0.8), rgba(20, 20, 20, 0)); padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 999; }
+        .header h1 { font-size: 1.5em; margin: 0; color: var(--red-main); font-weight: bold; }
+        .search-container { position: relative; }
+        #search-input { padding: 8px 15px 8px 35px; border-radius: 20px; border: 1px solid #555; background-color: rgba(0,0,0,0.5); color: #ecf0f1; width: 200px; }
+        .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+        .main-content { padding: 0 20px 20px 20px; }
+        .hero-section { position: relative; height: 60vh; margin: -60px -20px 20px -20px; display: flex; flex-direction: column; justify-content: flex-end; padding: 40px; box-sizing: border-box; background-size: cover; background-position: center top; }
+        .hero-section::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 50%; background: linear-gradient(to top, var(--dark-bg), transparent); }
+        .hero-content { z-index: 10; }
+        .hero-title { font-size: 2.5em; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.7); margin: 0 0 10px 0; }
+        .hero-button { background-color: var(--red-main); color: white; border: none; padding: 12px 25px; border-radius: 5px; font-size: 1em; cursor: pointer; text-decoration: none; }
+        .series-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-top: 20px; }
+        .series-card { background-color: var(--dark-card); border-radius: 5px; overflow: hidden; cursor: pointer; transition: transform 0.2s ease-out, box-shadow 0.2s ease-out; }
+        .series-card:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5); }
+        .series-card img { width: 100%; height: 225px; object-fit: cover; display: block; }
+        #loading-indicator { text-align: center; font-size: 1.2em; padding: 50px; }
+        .bottom-nav { display: flex; justify-content: space-around; align-items: center; height: 60px; background-color: var(--dark-card); border-top: 1px solid rgba(255, 255, 255, 0.1); position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000; }
+        .bottom-nav .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--text-muted); font-size: 0.7em; text-align: center; }
+        .bottom-nav .nav-item.active { color: var(--red-main); }
+        .bottom-nav .nav-item i { font-size: 1.4em; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>Series</h1>
+        <div class="search-container">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="search-input" placeholder="Buscar serie...">
+        </div>
+    </header>
+    <main class="main-content">
+        <section id="hero-container"></section>
+        <div id="series-container">
+            <p id="loading-indicator">Cargando series...</p>
+        </div>
+    </main>
+    <nav class="bottom-nav">
+        <a href="index.html" class="nav-item"><i class="fas fa-home"></i><span>Inicio</span></a>
+        <a href="peliculas.html" class="nav-item"><i class="fas fa-film"></i><span>Películas</span></a>
+        <a href="series.html" class="nav-item active"><i class="fas fa-tv"></i><span>Series</span></a>
+    </nav>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        const firebaseConfig = {
+          apiKey: "AIzaSyCLGiT_UeTm578cQeCwLldH50qOjounCOs",
+          authDomain: "miappdetv-db.firebaseapp.com",
+          databaseURL: "https://miappdetv-db-default-rtdb.firebaseio.com",
+          projectId: "miappdetv-db",
+          storageBucket: "miappdetv-db.firebasestorage.app",
+          messagingSenderId: "515640857376",
+          appId: "1:515640857376:web:89e5bb051ee79f030c3d45"
+        };
+        
+        const heroContainer = document.getElementById('hero-container');
+        const seriesContainer = document.getElementById('series-container');
+        const searchInput = document.getElementById('search-input');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        let allSeries = [];
+
+        async function main() {
+            try {
+                const seriesCol = collection(db, "series");
+                const seriesSnapshot = await getDocs(seriesCol);
+                allSeries = seriesSnapshot.docs.map(doc => doc.data());
+
+                if (allSeries.length > 0) {
+                    loadingIndicator.style.display = 'none';
+                    displayHero();
+                    renderSeriesGrid(allSeries);
+                } else {
+                    loadingIndicator.textContent = 'No hay series en la base de datos.';
+                }
+            } catch (e) {
+                console.error("Error al cargar series:", e);
+                loadingIndicator.textContent = 'Error al cargar las series.';
+            }
+        }
+        
+        function displayHero() {
+            const heroSeries = allSeries.find(s => s.backdrop_url) || allSeries[0];
+            if (!heroSeries) return;
+            heroContainer.style.backgroundImage = `url(${heroSeries.backdrop_url})`;
+            heroContainer.innerHTML = `
+                <div class="hero-content">
+                    <h2 class="hero-title">${heroSeries.titulo}</h2>
+                    <a href="sinopsis-serie.html?id=${heroSeries.id}" class="hero-button">
+                        <i class="fas fa-play"></i> Ver ahora
+                    </a>
+                </div>
+            `;
+        }
+
+        function renderSeriesGrid(seriesArray) {
+            let gridHTML = '<div class="series-grid">';
+            seriesArray.forEach(series => {
+                gridHTML += `
+                    <div class="series-card" onclick="location.href='sinopsis-serie.html?id=${series.id}'">
+                        <img src="${series.poster_url}" alt="${series.titulo}" loading="lazy" onerror="this.src='https://via.placeholder.com/150x225?text=No+IMG'"/>
+                    </div>
+                `;
+            });
+            gridHTML += '</div>';
+            seriesContainer.innerHTML = gridHTML;
+        }
+        
+        searchInput.addEventListener('input', () => {
+            const query = searchInput.value.toLowerCase().trim();
+            const filteredSeries = allSeries.filter(series => series.titulo.toLowerCase().includes(query));
+            renderSeriesGrid(filteredSeries);
+        });
+
+        main();
+    </script>
+</body>
+</html>
