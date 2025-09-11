@@ -12,6 +12,7 @@
             --red-main: #e50914;
             --text-light: #ffffff;
             --text-muted: #95a5a6;
+            --skeleton-bg: #2c2c44; /* Color para los esqueletos */
         }
 
         body {
@@ -36,179 +37,51 @@
             transition: background-color 0.3s ease;
         }
 
-        .header.scrolled {
-            background-color: var(--dark-bg);
-        }
-
-        .header h1 {
-            font-size: 1.5em;
-            margin: 0;
-            color: var(--red-main);
-            font-weight: bold;
-        }
-
-        .search-container {
-            position: relative;
-        }
-        #search-input {
-            padding: 8px 15px 8px 35px;
-            border-radius: 20px;
-            border: 1px solid #555;
-            background-color: rgba(0,0,0,0.5);
-            color: #ecf0f1;
-            width: 200px;
-            transition: width 0.3s ease-in-out, background-color 0.3s ease;
-        }
-        #search-input:focus {
-            background-color: rgba(0,0,0,0.8);
-            border-color: #777;
-            outline: none;
-        }
-        .search-icon {
-            position: absolute;
-            left: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--text-muted);
-        }
-
-        .main-content {
-            padding: 0 20px 20px 20px;
-        }
-        
-        .hero-section {
-            position: relative;
-            height: 60vh;
-            margin: -60px -20px 20px -20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            padding: 40px;
-            box-sizing: border-box;
-            background-size: cover;
-            background-position: center top;
-        }
-        .hero-section::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 50%;
-            background: linear-gradient(to top, var(--dark-bg), transparent);
-        }
-        .hero-content {
-            z-index: 10;
-        }
-        .hero-title {
-            font-size: 2.5em;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.7);
-            margin: 0 0 10px 0;
-        }
-        .hero-description {
-            font-size: 1.1em;
-            max-width: 50%;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
-            line-height: 1.4;
-            margin-bottom: 20px;
-        }
-        .hero-button {
-            background-color: var(--red-main);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 5px;
-            font-size: 1em;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            text-decoration: none;
-        }
-        .hero-button:hover {
-            background-color: #c00812;
-        }
-        
+        .header.scrolled { background-color: var(--dark-bg); }
+        .header h1 { font-size: 1.5em; margin: 0; color: var(--red-main); font-weight: bold; }
+        .search-container { position: relative; }
+        #search-input { padding: 8px 15px 8px 35px; border-radius: 20px; border: 1px solid #555; background-color: rgba(0,0,0,0.5); color: #ecf0f1; width: 200px; transition: width 0.3s ease-in-out, background-color 0.3s ease; }
+        #search-input:focus { background-color: rgba(0,0,0,0.8); border-color: #777; outline: none; }
+        .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+        .main-content { padding: 0 20px 20px 20px; }
+        .hero-section { position: relative; height: 60vh; margin: -60px -20px 20px -20px; display: flex; flex-direction: column; justify-content: flex-end; padding: 40px; box-sizing: border-box; background-size: cover; background-position: center top; background-color: var(--dark-card); }
+        .hero-section::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 50%; background: linear-gradient(to top, var(--dark-bg), transparent); }
+        .hero-content { z-index: 10; opacity: 0; transition: opacity 0.5s ease-in; }
+        .hero-content.loaded { opacity: 1; }
+        .hero-title { font-size: 2.5em; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.7); margin: 0 0 10px 0; }
+        .hero-description { font-size: 1.1em; max-width: 50%; text-shadow: 1px 1px 2px rgba(0,0,0,0.7); line-height: 1.4; margin-bottom: 20px; }
+        .hero-button { background-color: var(--red-main); color: white; border: none; padding: 12px 25px; border-radius: 5px; font-size: 1em; cursor: pointer; transition: background-color 0.3s ease; text-decoration: none; }
+        .hero-button:hover { background-color: #c00812; }
         .genre-row { margin-bottom: 30px; }
-        .genre-row-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        .genre-title {
-            font-size: 1.4em;
-            font-weight: bold;
-            margin: 0;
-        }
-        .view-all-btn {
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            font-size: 0.9em;
-            transition: color 0.2s;
-        }
-        .view-all-btn:hover {
-            color: var(--text-light);
-        }
-        
-        .movie-carousel {
-            display: flex;
-            overflow-x: auto;
-            overflow-y: hidden;
-            gap: 15px;
-            padding-bottom: 15px;
-            scrollbar-width: thin;
-            scrollbar-color: #555 var(--dark-bg);
-        }
+        .genre-row-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .genre-title { font-size: 1.4em; font-weight: bold; margin: 0; }
+        .view-all-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.9em; transition: color 0.2s; }
+        .view-all-btn:hover { color: var(--text-light); }
+        .movie-carousel { display: flex; overflow-x: auto; overflow-y: hidden; gap: 15px; padding-bottom: 15px; scrollbar-width: thin; scrollbar-color: #555 var(--dark-bg); }
         .movie-carousel::-webkit-scrollbar { height: 8px; }
         .movie-carousel::-webkit-scrollbar-thumb { background-color: #555; border-radius: 10px; }
-        
-        .movie-card {
-            flex: 0 0 150px;
-            background-color: var(--dark-card);
-            border-radius: 5px;
-            overflow: hidden;
-            cursor: pointer;
-            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
-            position: relative;
-        }
-        .movie-card:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-        }
-        .movie-card img {
-            width: 100%;
-            height: 225px;
-            object-fit: cover;
-            display: block;
-        }
-        
-        #loading-indicator { text-align: center; font-size: 1.2em; padding: 50px; }
-        
-        .search-results-grid, .full-grid-view {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-        
-        .bottom-nav {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            height: 60px;
-            background-color: var(--dark-card);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-        }
+        .movie-card { flex: 0 0 150px; background-color: transparent; border-radius: 5px; overflow: hidden; cursor: pointer; transition: transform 0.2s ease-out, box-shadow 0.2s ease-out; position: relative; }
+        .movie-card:hover { transform: scale(1.05); box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5); }
+        .movie-card img { width: 100%; height: 225px; object-fit: cover; display: block; background-color: var(--dark-card); /* Color de fondo mientras carga */ }
+        .search-results-grid, .full-grid-view { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-top: 20px; }
+        .bottom-nav { display: flex; justify-content: space-around; align-items: center; height: 60px; background-color: var(--dark-card); border-top: 1px solid rgba(255, 255, 255, 0.1); position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000; }
         .bottom-nav .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--text-muted); font-size: 0.7em; text-align: center; }
         .bottom-nav .nav-item.active { color: var(--red-main); }
         .bottom-nav .nav-item i { font-size: 1.4em; margin-bottom: 5px; }
+        
+        /* --- ESTILOS PARA SKELETON LOADING --- */
+        .movie-card.skeleton {
+            cursor: default;
+            background-color: var(--skeleton-bg);
+            animation: pulse 1.5s infinite ease-in-out;
+        }
+        .movie-card.skeleton:hover { transform: none; box-shadow: none; }
+        .skeleton-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
+        }
         
         @media (max-width: 768px) {
             .hero-title { font-size: 2em; }
@@ -237,23 +110,14 @@
     <main class="main-content">
         <section id="hero-container"></section>
         <div id="movies-container">
-            <p id="loading-indicator">Cargando películas...</p>
+             <!-- Los esqueletos se insertarán aquí por JS -->
         </div>
     </main>
 
     <nav class="bottom-nav">
-        <a href="index.html" class="nav-item">
-            <i class="fas fa-home"></i>
-            <span>Inicio</span>
-        </a>
-        <a href="#" class="nav-item">
-            <i class="fas fa-heart"></i>
-            <span>Favoritos</span>
-        </a>
-        <a href="peliculas.html" class="nav-item active">
-            <i class="fas fa-film"></i>
-            <span>Películas</span>
-        </a>
+        <a href="index.html" class="nav-item"> <i class="fas fa-home"></i> <span>Inicio</span> </a>
+        <a href="#" class="nav-item"> <i class="fas fa-heart"></i> <span>Favoritos</span> </a>
+        <a href="peliculas.html" class="nav-item active"> <i class="fas fa-film"></i> <span>Películas</span> </a>
     </nav>
 
     <script type="module">
@@ -277,7 +141,6 @@
         const heroContainer = document.getElementById('hero-container');
         const moviesContainer = document.getElementById('movies-container');
         const searchInput = document.getElementById('search-input');
-        const loadingIndicator = document.getElementById('loading-indicator');
         const header = document.querySelector('.header');
 
         let allMovies = [];
@@ -287,7 +150,21 @@
             else header.classList.remove('scrolled');
         });
 
+        // --- NUEVA FUNCIÓN PARA MOSTRAR SKELETONS ---
+        function displaySkeletons() {
+            const skeletonGrid = document.createElement('div');
+            skeletonGrid.className = 'skeleton-grid';
+            let skeletonsHTML = '';
+            for (let i = 0; i < 12; i++) {
+                skeletonsHTML += '<div class="movie-card skeleton" style="height: 225px;"></div>';
+            }
+            skeletonGrid.innerHTML = skeletonsHTML;
+            moviesContainer.innerHTML = ''; // Limpiamos el contenedor
+            moviesContainer.appendChild(skeletonGrid);
+        }
+
         async function main() {
+            displaySkeletons(); // Mostramos los esqueletos inmediatamente
             try {
                 await signInAnonymously(auth);
                 const moviesCol = collection(db, "peliculas");
@@ -295,36 +172,42 @@
                 allMovies = movieSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
                 if (allMovies.length > 0) {
-                    loadingIndicator.style.display = 'none';
                     displayHero();
                     displayMoviesByGenre();
                 } else {
-                    loadingIndicator.textContent = 'No hay películas en la base de datos.';
+                    moviesContainer.innerHTML = '<p style="text-align: center; font-size: 1.2em; padding: 50px;">No hay películas en la base de datos.</p>';
                 }
             } catch (e) {
                 console.error("Error al cargar películas:", e);
-                loadingIndicator.textContent = 'Error al cargar películas.';
+                moviesContainer.innerHTML = '<p style="text-align: center; font-size: 1.2em; padding: 50px;">Error al cargar películas.</p>';
             }
         }
         
         function displayHero() {
             const heroMovie = allMovies.find(m => m.backdrop_url) || allMovies[0];
             if (!heroMovie) return;
-            heroContainer.style.backgroundImage = `url(${heroMovie.backdrop_url})`;
-            const shortSynopsis = heroMovie.sinopsis.length > 150 ? heroMovie.sinopsis.substring(0, 150) + '...' : heroMovie.sinopsis;
-            heroContainer.innerHTML = `
-                <div class="hero-content">
-                    <h2 class="hero-title">${heroMovie.titulo}</h2>
-                    <p class="hero-description">${shortSynopsis}</p>
-                    <a href="sinopsis-pelicula.html?id=${heroMovie.id}" class="hero-button">
-                        <i class="fas fa-play"></i> Ver ahora
-                    </a>
-                </div>
-            `;
+
+            const heroImage = new Image();
+            heroImage.src = heroMovie.backdrop_url;
+            heroImage.onload = () => {
+                heroContainer.style.backgroundImage = `url(${heroMovie.backdrop_url})`;
+                const shortSynopsis = heroMovie.sinopsis.length > 150 ? heroMovie.sinopsis.substring(0, 150) + '...' : heroMovie.sinopsis;
+                heroContainer.innerHTML = `
+                    <div class="hero-content">
+                        <h2 class="hero-title">${heroMovie.titulo}</h2>
+                        <p class="hero-description">${shortSynopsis}</p>
+                        <a href="sinopsis-pelicula.html?id=${heroMovie.id}" class="hero-button">
+                            <i class="fas fa-play"></i> Ver ahora
+                        </a>
+                    </div>
+                `;
+                // Añadimos la clase 'loaded' para el efecto de fade-in
+                setTimeout(() => document.querySelector('.hero-content').classList.add('loaded'), 100);
+            };
         }
 
         function displayMoviesByGenre() {
-            moviesContainer.innerHTML = '';
+            moviesContainer.innerHTML = ''; // Limpiamos los esqueletos
             const genres = [...new Set(allMovies.flatMap(movie => movie.generos))];
             
             genres.forEach(genre => {
@@ -373,18 +256,13 @@
             `;
             const gridContainer = document.createElement('div');
             gridContainer.className = 'full-grid-view';
-
-            let movieCardsHTML = '';
-            moviesInGenre.forEach(movie => {
-                movieCardsHTML += `
-                    <div class="movie-card" onclick="location.href='sinopsis-pelicula.html?id=${movie.id}'">
-                        <img src="${movie.poster_url}" alt="${movie.titulo}" loading="lazy" onerror="this.src='https://via.placeholder.com/150x225?text=No+IMG'"/>
-                    </div>
-                `;
-            });
+            gridContainer.innerHTML = moviesInGenre.map(movie => `
+                <div class="movie-card" onclick="location.href='sinopsis-pelicula.html?id=${movie.id}'">
+                    <img src="${movie.poster_url}" alt="${movie.titulo}" loading="lazy" onerror="this.src='https://via.placeholder.com/150x225?text=No+IMG'"/>
+                </div>
+            `).join('');
 
             moviesContainer.innerHTML = gridHeader;
-            gridContainer.innerHTML = movieCardsHTML;
             moviesContainer.appendChild(gridContainer);
             
             document.getElementById('back-to-rows-btn').addEventListener('click', () => {
@@ -395,7 +273,6 @@
         
         function displaySearchResults(query) {
              heroContainer.style.display = 'none';
-             moviesContainer.innerHTML = '';
              const filteredMovies = allMovies.filter(movie => movie.titulo.toLowerCase().includes(query));
             if (filteredMovies.length === 0) {
                 moviesContainer.innerHTML = '<p style="text-align:center;">No se encontraron resultados.</p>';
@@ -403,15 +280,12 @@
             }
             const resultsGrid = document.createElement('div');
             resultsGrid.className = 'search-results-grid';
-            let movieCardsHTML = '';
-            filteredMovies.forEach(movie => {
-                 movieCardsHTML += `
-                    <div class="movie-card" onclick="location.href='sinopsis-pelicula.html?id=${movie.id}'">
-                        <img src="${movie.poster_url}" alt="${movie.titulo}" loading="lazy" onerror="this.src='https://via.placeholder.com/150x225?text=No+IMG'"/>
-                    </div>
-                `;
-            });
-            resultsGrid.innerHTML = movieCardsHTML;
+            resultsGrid.innerHTML = filteredMovies.map(movie => `
+                <div class="movie-card" onclick="location.href='sinopsis-pelicula.html?id=${movie.id}'">
+                    <img src="${movie.poster_url}" alt="${movie.titulo}" loading="lazy" onerror="this.src='https://via.placeholder.com/150x225?text=No+IMG'"/>
+                </div>
+            `).join('');
+            moviesContainer.innerHTML = '';
             moviesContainer.appendChild(resultsGrid);
         }
         
