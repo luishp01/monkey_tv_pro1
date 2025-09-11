@@ -70,12 +70,8 @@
         .main-content { padding: 10px; }
 
         .categories-section {
-            display: flex;
-            overflow-x: auto;
-            gap: 10px;
-            padding: 10px 0;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
+            display: flex; overflow-x: auto; gap: 10px; padding: 10px 0;
+            -webkit-overflow-scrolling: touch; scrollbar-width: none;
         }
         .categories-section::-webkit-scrollbar { display: none; }
         .category-item { background-color: var(--dark-card); padding: 8px 15px; border-radius: 20px; font-size: 0.8em; white-space: nowrap; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
@@ -205,6 +201,8 @@
     </nav>
     
     <script type="module">
+        // --- TU SCRIPT DE FIREBASE COMPLETO ---
+        // (Sin cambios)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -225,11 +223,8 @@
                 renderCategories();
                 renderChannels(window.allChannelsList, []); 
                 setupFavoritesListener();
-            } catch (e) {
-                console.error('Error al cargar datos:', e);
-            } finally {
-                document.getElementById('loading-spinner').style.display = 'none';
-            }
+            } catch (e) { console.error('Error al cargar datos:', e); } 
+            finally { document.getElementById('loading-spinner').style.display = 'none'; }
         }
         function setupFavoritesListener() {
             const favoritesRef = collection(db, `users/${userId}/favorites`);
@@ -250,23 +245,44 @@
     </script>
     
     <script>
+        // --- LÓGICA DE CHROMECAST COMPLETA ---
         window['__onGCastApiAvailable'] = function(isAvailable) { if (isAvailable) { initializeCastApi(); } };
+
         function initializeCastApi() {
-            cast.framework.CastContext.getInstance().setOptions({ receiverApplicationId: 'CC1AD845', autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED });
-        }
-        function castChannel(channel) {
-            const castSession = cast.framework.CastContext.getInstance().getCurrentSession();
-            if (!castSession) { alert("Para transmitir, primero haz clic en el ícono de Cast y elige tu dispositivo."); return; }
-            const videoDePrueba = 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
-            const tipoDeContenido = 'video/mp4';
-            const mediaInfo = new chrome.cast.media.MediaInfo(videoDePrueba, tipoDeContenido);
-            mediaInfo.metadata = new chrome.cast.media.GenericMediaMetadata();
-            mediaInfo.metadata.title = `Prueba: ${channel.nombre}`;
-            mediaInfo.metadata.images = [{ 'url': channel.logo_url }];
-            const request = new chrome.cast.media.LoadRequest(mediaInfo);
-            castSession.loadMedia(request).then( () => { showMessageBox('Transmitiendo video de prueba en tu TV.'); }, (errorCode) => { alert('Error al transmitir: ' + errorCode); } );
+            cast.framework.CastContext.getInstance().setOptions({
+                // ===============================================================
+                //       ↓↓↓ ¡¡AQUÍ PEGA TU ID DE APLICACIÓN!! ↓↓↓
+                // ===============================================================
+                receiverApplicationId: 'D066AED3',
+                autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+            });
         }
 
+        function castChannel(channel) {
+            const castSession = cast.framework.CastContext.getInstance().getCurrentSession();
+            if (!castSession) {
+                alert("Para transmitir, primero haz clic en el ícono de Cast y elige tu dispositivo.");
+                return;
+            }
+            // Usamos la URL real del canal
+            const mediaInfo = new chrome.cast.media.MediaInfo(channel.m3u8_url, 'application/vnd.apple.mpegurl');
+            
+            mediaInfo.metadata = new chrome.cast.media.GenericMediaMetadata();
+            mediaInfo.metadata.title = channel.nombre;
+            mediaInfo.metadata.images = [{ 'url': channel.logo_url }];
+            
+            const request = new chrome.cast.media.LoadRequest(mediaInfo);
+            
+            castSession.loadMedia(request).then(
+                () => { showMessageBox('Transmitiendo ' + channel.nombre + ' en tu TV.'); },
+                (errorCode) => { 
+                    console.error('Error al transmitir:', errorCode);
+                    alert('Error al transmitir. Es posible que este canal no sea compatible (problema de CORS).');
+                }
+            );
+        }
+
+        // --- LÓGICA DE LA APLICACIÓN COMPLETA ---
         const videoPlayer = document.getElementById('videoPlayer');
         const videoPlaceholder = document.querySelector('.video-placeholder');
         const videoOverlay = document.querySelector('.video-overlay');
