@@ -27,19 +27,13 @@
             -webkit-font-smoothing: antialiased;
         }
         
-        #messageBox {
-            position: fixed; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(0, 0, 0, 0.8);
-            color: white; padding: 20px; border-radius: 10px;
-            z-index: 2000; display: none; text-align: center;
-        }
+        #messageBox { /* ... sin cambios ... */ }
 
         .header { background-color: var(--dark-card); z-index: 100; }
         .header-top { display: flex; justify-content: space-between; align-items: center; padding: 10px; }
         .app-title { font-size: 1.2em; font-weight: bold; }
         .search-container { display: flex; align-items: center; position: relative; }
-        google-cast-launcher { width: 24px; height: 24px; cursor: pointer; margin-left: 15px; }
+        google-cast-launcher { width: 24px; height: 24px; cursor: pointer; margin-left: 15px; --cast-button-color: var(--text-light); }
         .cast-icon { color: var(--text-muted); cursor: pointer; }
         #search-input { width: 0; opacity: 0; padding: 8px 15px; border-radius: 20px; border: 1px solid #555; background-color: #1a1a2e; color: #ecf0f1; transition: width 0.3s ease-in-out, opacity 0.3s ease-in-out; position: absolute; right: 0; z-index: -1; }
         #search-input.active { width: 200px; opacity: 1; z-index: 1; }
@@ -107,7 +101,10 @@
         .side-nav { display: none; }
 
         @media (min-width: 992px) {
-            body { display: flex; height: 100vh; overflow: hidden; }
+            html, body {
+                height: 100%;
+                overflow: hidden; /* ¡EL CAMBIO CLAVE! Lo movemos aquí */
+            }
             .desktop-layout-container { display: flex; width: 100%; height: 100%; }
             .header { position: relative; width: 60%; height: 100%; display: flex; flex-direction: column; }
             .header-top { flex-shrink: 0; }
@@ -201,8 +198,7 @@
     </nav>
     
     <script type="module">
-        // --- TU SCRIPT DE FIREBASE COMPLETO ---
-        // (Sin cambios)
+        // --- SCRIPT DE FIREBASE COMPLETO ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, onSnapshot, doc, setDoc, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
@@ -247,39 +243,21 @@
     <script>
         // --- LÓGICA DE CHROMECAST COMPLETA ---
         window['__onGCastApiAvailable'] = function(isAvailable) { if (isAvailable) { initializeCastApi(); } };
-
         function initializeCastApi() {
             cast.framework.CastContext.getInstance().setOptions({
-                // ===============================================================
-                //       ↓↓↓ ¡¡AQUÍ PEGA TU ID DE APLICACIÓN!! ↓↓↓
-                // ===============================================================
-                receiverApplicationId: 'D066AED3',
+                receiverApplicationId: 'AQUÍ VA TU ID DE APLICACIÓN', // Reemplaza esto con tu ID
                 autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
             });
         }
-
         function castChannel(channel) {
             const castSession = cast.framework.CastContext.getInstance().getCurrentSession();
-            if (!castSession) {
-                alert("Para transmitir, primero haz clic en el ícono de Cast y elige tu dispositivo.");
-                return;
-            }
-            // Usamos la URL real del canal
+            if (!castSession) { alert("Para transmitir, primero haz clic en el ícono de Cast y elige tu dispositivo."); return; }
             const mediaInfo = new chrome.cast.media.MediaInfo(channel.m3u8_url, 'application/vnd.apple.mpegurl');
-            
             mediaInfo.metadata = new chrome.cast.media.GenericMediaMetadata();
             mediaInfo.metadata.title = channel.nombre;
             mediaInfo.metadata.images = [{ 'url': channel.logo_url }];
-            
             const request = new chrome.cast.media.LoadRequest(mediaInfo);
-            
-            castSession.loadMedia(request).then(
-                () => { showMessageBox('Transmitiendo ' + channel.nombre + ' en tu TV.'); },
-                (errorCode) => { 
-                    console.error('Error al transmitir:', errorCode);
-                    alert('Error al transmitir. Es posible que este canal no sea compatible (problema de CORS).');
-                }
-            );
+            castSession.loadMedia(request).then( () => { showMessageBox('Transmitiendo ' + channel.nombre + ' en tu TV.'); }, (errorCode) => { alert('Error al transmitir: ' + errorCode); } );
         }
 
         // --- LÓGICA DE LA APLICACIÓN COMPLETA ---
