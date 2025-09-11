@@ -15,6 +15,7 @@
             --red-heart: #e74c3c;
             --text-light: #ecf0f1;
             --text-muted: #95a5a6;
+            --skeleton-bg: #2c2c44;
         }
         html { box-sizing: border-box; }
         *, *:before, *:after { box-sizing: inherit; }
@@ -39,18 +40,11 @@
         .header-top { display: flex; justify-content: space-between; align-items: center; padding: 10px; }
         .app-title { font-size: 1.2em; font-weight: bold; }
         .search-container { display: flex; align-items: center; position: relative; }
-        google-cast-launcher {
-            width: 24px;
-            height: 24px;
-            cursor: pointer;
-            margin-left: 15px;
-            --cast-button-color: var(--text-light);
-        }
+        google-cast-launcher { width: 24px; height: 24px; cursor: pointer; margin-left: 15px; --cast-button-color: var(--text-light); }
         .cast-icon { color: var(--text-muted); cursor: pointer; }
         #search-input { width: 0; opacity: 0; padding: 8px 15px; border-radius: 20px; border: 1px solid #555; background-color: #1a1a2e; color: #ecf0f1; transition: width 0.3s ease-in-out, opacity 0.3s ease-in-out; position: absolute; right: 0; z-index: -1; }
         #search-input.active { width: 200px; opacity: 1; z-index: 1; }
         .search-icon { font-size: 1.2em; cursor: pointer; z-index: 2; }
-
         .video-container { position: relative; width: 100%; padding-top: 56.25%; height: 0; overflow: hidden; background-color: #000; }
         .video-placeholder { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background-color: #000; color: var(--text-muted); text-align: center; padding: 10px; }
         .video-placeholder i { font-size: 4em; margin-bottom: 20px; }
@@ -71,69 +65,48 @@
         .time-info { font-size: 0.8em; color: var(--text-muted); margin-top: 5px; }
         .volume-controls { display: flex; align-items: center; gap: 10px; }
         .volume-slider-container { width: 80px; }
-
         .main-content-wrapper { padding-bottom: 70px; }
         .main-content { padding: 10px; }
-
-        .categories-section {
-            display: flex; overflow-x: auto; gap: 10px; padding: 10px 0;
-            -webkit-overflow-scrolling: touch; scrollbar-width: none;
-        }
+        .categories-section { display: flex; overflow-x: auto; gap: 10px; padding: 10px 0; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
         .categories-section::-webkit-scrollbar { display: none; }
         .category-item { background-color: var(--dark-card); padding: 8px 15px; border-radius: 20px; font-size: 0.8em; white-space: nowrap; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
         .category-item.active { background-color: var(--red-heart); }
         .category-item:focus, .channel-item:focus { outline: none; box-shadow: 0 0 0 2px var(--dark-bg), 0 0 0 4px var(--red-heart); transform: scale(1.02); }
-
         .channel-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
         .section-title { font-size: 1em; font-weight: bold; color: var(--text-light); }
         .channel-list { list-style: none; padding: 0; margin: 0; }
         .channel-item { display: flex; align-items: center; justify-content: space-between; background-color: var(--dark-card); border-radius: 10px; padding: 10px; margin-bottom: 10px; cursor: pointer; transition: all 0.3s ease; }
         .channel-item:hover { transform: translateY(-2px); }
         .channel-logo-container { display: flex; align-items: center; flex-grow: 1; }
-        .channel-item .channel-logo { width: 50px; height: 50px; object-fit: contain; border-radius: 5px; margin-right: 10px; }
+        .channel-item .channel-logo { width: 50px; height: 50px; object-fit: contain; border-radius: 5px; margin-right: 10px; background-color: #1a1a2e; }
         .channel-details h3 { margin: 0; font-size: 1em; }
         .channel-details p { margin: 0; font-size: 0.8em; color: var(--text-muted); }
         .channel-actions { display: flex; align-items: center; gap: 15px; }
         .channel-actions .fa-heart { color: var(--text-muted); }
         .channel-actions .fa-heart.favorited { color: var(--red-heart); transform: scale(1.2); }
-
-        .bottom-nav {
-            display: flex; justify-content: space-around; align-items: center; height: 60px;
-            background-color: var(--dark-card); border-top: 1px solid rgba(255, 255, 255, 0.1);
-            position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000;
-        }
+        .bottom-nav { display: flex; justify-content: space-around; align-items: center; height: 60px; background-color: var(--dark-card); border-top: 1px solid rgba(255, 255, 255, 0.1); position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000; }
         .bottom-nav .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--text-muted); font-size: 0.7em; text-align: center; }
         .bottom-nav .nav-item.active { color: var(--red-heart); }
         .bottom-nav .nav-item i { font-size: 1.4em; margin-bottom: 5px; }
-        
-        .spinner-container { display: flex; justify-content: center; align-items: center; padding: 40px; }
-        .spinner { border: 4px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top: 4px solid var(--red-heart); width: 40px; height: 40px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
         .side-nav { display: none; }
+        
+        /* --- ESTILOS PARA SKELETON LOADING --- */
+        .channel-item.skeleton { cursor: default; animation: pulse 1.5s infinite ease-in-out; }
+        .channel-item.skeleton:hover { transform: none; }
+        .skeleton .channel-logo { background-color: #3e3e5a; }
+        .skeleton .text-line { height: 1em; border-radius: 4px; background-color: #3e3e5a; }
+        .skeleton .text-line.h3 { width: 60%; margin-bottom: 5px; }
+        .skeleton .text-line.p { width: 40%; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
 
         @media (min-width: 992px) {
-            body { 
-                height: 100vh;
-            }
+            body { height: 100vh; }
             .desktop-layout-container { display: flex; width: 100%; height: 100%; }
             .header { position: relative; width: 60%; height: 100%; display: flex; flex-direction: column; }
             .header-top { flex-shrink: 0; }
             .video-container { flex-grow: 1; padding-top: 0; height: auto; }
-            .right-panel {
-                display: flex;
-                width: 40%;
-                height: 100%;
-                background-color: var(--dark-bg);
-            }
-            .side-nav {
-                display: flex;
-                flex-direction: column;
-                width: 100px;
-                background-color: var(--dark-card);
-                padding-top: 20px;
-                flex-shrink: 0;
-            }
+            .right-panel { display: flex; width: 40%; height: 100%; background-color: var(--dark-bg); }
+            .side-nav { display: flex; flex-direction: column; width: 100px; background-color: var(--dark-card); padding-top: 20px; flex-shrink: 0; }
             .side-nav .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--text-muted); padding: 15px 0; width: 100%; transition: background-color 0.2s, color 0.2s; }
             .side-nav .nav-item:hover { background-color: rgba(255, 255, 255, 0.1); }
             .side-nav .nav-item.active { color: var(--red-heart); border-left: 3px solid var(--red-heart); }
@@ -199,9 +172,6 @@
                     <div class="channel-header">
                         <h2 class="section-title">TODOS</h2>
                     </div>
-                    <div id="loading-spinner" class="spinner-container">
-                        <div class="spinner"></div>
-                    </div>
                     <ul class="channel-list"></ul>
                 </main>
             </div>
@@ -226,9 +196,29 @@
         let userId;
         window.allChannelsList = [];
         window.favoritesList = [];
+
+        function displayChannelSkeletons() {
+            const channelList = document.querySelector('.channel-list');
+            let skeletonsHTML = '';
+            for(let i = 0; i < 8; i++) {
+                skeletonsHTML += `
+                    <li class="channel-item skeleton">
+                        <div class="channel-logo-container">
+                            <div class="channel-logo"></div>
+                            <div class="channel-details">
+                                <div class="text-line h3"></div>
+                                <div class="text-line p"></div>
+                            </div>
+                        </div>
+                    </li>
+                `;
+            }
+            channelList.innerHTML = skeletonsHTML;
+        }
+        
         async function loadAllData() {
+            displayChannelSkeletons();
             try {
-                document.getElementById('loading-spinner').style.display = 'flex';
                 const [userCredential, channelsSnapshot] = await Promise.all([ signInAnonymously(auth), getDocs(collection(db, "canales")) ]);
                 userId = userCredential.user.uid;
                 window.allChannelsList = channelsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -236,9 +226,12 @@
                 window.renderCategories();
                 window.renderChannels(window.allChannelsList, []); 
                 setupFavoritesListener();
-            } catch (e) { console.error('Error al cargar datos:', e); } 
-            finally { document.getElementById('loading-spinner').style.display = 'none'; }
+            } catch (e) { 
+                console.error('Error al cargar datos:', e); 
+                document.querySelector('.channel-list').innerHTML = '<li style="text-align:center;padding:20px;">Error al cargar los canales.</li>';
+            } 
         }
+
         function setupFavoritesListener() {
             const favoritesRef = collection(db, `users/${userId}/favorites`);
             onSnapshot(favoritesRef, (snapshot) => {
