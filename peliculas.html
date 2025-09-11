@@ -7,9 +7,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         :root {
-            --dark-bg: #141414; /* Un negro más tipo Netflix */
+            --dark-bg: #141414;
             --dark-card: #1a1a2e;
-            --red-main: #e50914; /* Rojo Netflix */
+            --red-main: #e50914;
             --text-light: #ffffff;
             --text-muted: #95a5a6;
         }
@@ -21,10 +21,9 @@
             margin: 0;
             padding: 0;
             -webkit-font-smoothing: antialiased;
-            padding-bottom: 70px; /* Espacio para el menú fijo */
+            padding-bottom: 70px;
         }
 
-        /* --- Header --- */
         .header {
             background: linear-gradient(to bottom, rgba(20, 20, 20, 0.8), rgba(20, 20, 20, 0));
             padding: 15px 20px;
@@ -73,16 +72,14 @@
             color: var(--text-muted);
         }
 
-        /* --- Contenido Principal --- */
         .main-content {
             padding: 0 20px 20px 20px;
         }
         
-        /* --- Película Destacada (Hero) --- */
         .hero-section {
             position: relative;
             height: 60vh;
-            margin: -60px -20px 20px -20px; /* Se extiende y solapa el header */
+            margin: -60px -20px 20px -20px;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
@@ -130,35 +127,45 @@
         .hero-button:hover {
             background-color: #c00812;
         }
-
-        /* --- Fila de Géneros --- */
-        .genre-row {
-            margin-bottom: 30px;
+        
+        .genre-row { margin-bottom: 30px; }
+        .genre-row-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
         }
         .genre-title {
             font-size: 1.4em;
             font-weight: bold;
-            margin-bottom: 15px;
+            margin: 0;
         }
+        .view-all-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: color 0.2s;
+        }
+        .view-all-btn:hover {
+            color: var(--text-light);
+        }
+        
         .movie-carousel {
             display: flex;
             overflow-x: auto;
             overflow-y: hidden;
             gap: 15px;
-            padding-bottom: 15px; /* Espacio para la barra de scroll */
+            padding-bottom: 15px;
             scrollbar-width: thin;
             scrollbar-color: #555 var(--dark-bg);
         }
-        .movie-carousel::-webkit-scrollbar {
-            height: 8px;
-        }
-        .movie-carousel::-webkit-scrollbar-thumb {
-            background-color: #555;
-            border-radius: 10px;
-        }
-
+        .movie-carousel::-webkit-scrollbar { height: 8px; }
+        .movie-carousel::-webkit-scrollbar-thumb { background-color: #555; border-radius: 10px; }
+        
         .movie-card {
-            flex: 0 0 150px; /* No se encoge, no crece, base de 150px */
+            flex: 0 0 150px;
             background-color: var(--dark-card);
             border-radius: 5px;
             overflow: hidden;
@@ -176,41 +183,16 @@
             object-fit: cover;
             display: block;
         }
-        .movie-card-info {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
-            padding: 15px 8px 8px 8px;
-            opacity: 0;
-            transition: opacity 0.2s ease-in;
-        }
-        .movie-card:hover .movie-card-info {
-            opacity: 1;
-        }
-        .movie-card-info h3 {
-            font-size: 0.9em;
-            margin: 0;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
         
-        #loading-indicator {
-            text-align: center;
-            font-size: 1.2em;
-            padding: 50px;
-        }
+        #loading-indicator { text-align: center; font-size: 1.2em; padding: 50px; }
         
-        .search-results-grid {
-             display: grid;
+        .search-results-grid, .full-grid-view {
+            display: grid;
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             gap: 15px;
             margin-top: 20px;
         }
         
-        /* --- Menú Inferior (código de la Mejora 1) --- */
         .bottom-nav {
             display: flex;
             justify-content: space-around;
@@ -224,43 +206,28 @@
             right: 0;
             z-index: 1000;
         }
-        .bottom-nav .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-decoration: none;
-            color: var(--text-muted);
-            font-size: 0.7em;
-            text-align: center;
-        }
-        .bottom-nav .nav-item.active {
-            color: var(--red-main);
-        }
-        .bottom-nav .nav-item i {
-            font-size: 1.4em;
-            margin-bottom: 5px;
-        }
+        .bottom-nav .nav-item { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--text-muted); font-size: 0.7em; text-align: center; }
+        .bottom-nav .nav-item.active { color: var(--red-main); }
+        .bottom-nav .nav-item i { font-size: 1.4em; margin-bottom: 5px; }
         
-        /* --- Media Queries para hacerlo ADAPTABLE (Responsive) --- */
         @media (max-width: 768px) {
             .hero-title { font-size: 2em; }
             .hero-description { font-size: 0.9em; max-width: 80%; }
             .movie-card { flex: 0 0 120px; }
             .movie-card img { height: 180px; }
         }
-
         @media (max-width: 480px) {
             .header h1 { font-size: 1.2em; }
             #search-input { width: 150px; }
             .hero-section { height: 50vh; padding: 20px; }
             .hero-title { font-size: 1.5em; }
-            .hero-description { display: none; } /* Ocultamos descripción en móviles pequeños */
+            .hero-description { display: none; }
         }
     </style>
 </head>
 <body>
     <header class="header">
-        <h1>MonkeyTV PRO</h1>
+        <h1>Películas</h1>
         <div class="search-container">
             <i class="fas fa-search search-icon"></i>
             <input type="text" id="search-input" placeholder="Buscar película...">
@@ -268,16 +235,12 @@
     </header>
 
     <main class="main-content">
-        <!-- La película destacada se insertará aquí -->
         <section id="hero-container"></section>
-        
-        <!-- Las filas de géneros o resultados de búsqueda se insertarán aquí -->
         <div id="movies-container">
             <p id="loading-indicator">Cargando películas...</p>
         </div>
     </main>
 
-    <!-- Menú inferior pegado aquí para claridad, pero el CSS lo fija abajo -->
     <nav class="bottom-nav">
         <a href="index.html" class="nav-item">
             <i class="fas fa-home"></i>
@@ -297,7 +260,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-
 
         const firebaseConfig = {
             apiKey: "AIzaSyCLGiT_UeTm578cQeCwLldH50qOjounCOs",
@@ -320,13 +282,9 @@
 
         let allMovies = [];
 
-        // --- Efecto de scroll en el header ---
         window.addEventListener('scroll', () => {
-            if (window.scrollY > 50) {
-                header.classList.add('scrolled');
-            } else {
-                header.classList.remove('scrolled');
-            }
+            if (window.scrollY > 50) header.classList.add('scrolled');
+            else header.classList.remove('scrolled');
         });
 
         async function main() {
@@ -343,25 +301,17 @@
                 } else {
                     loadingIndicator.textContent = 'No hay películas en la base de datos.';
                 }
-
             } catch (e) {
                 console.error("Error al cargar películas:", e);
-                loadingIndicator.textContent = 'Error al cargar películas. Revisa tu conexión.';
+                loadingIndicator.textContent = 'Error al cargar películas.';
             }
         }
         
         function displayHero() {
-            // Selecciona una película aleatoria con buen backdrop para destacar
             const heroMovie = allMovies.find(m => m.backdrop_url) || allMovies[0];
             if (!heroMovie) return;
-            
             heroContainer.style.backgroundImage = `url(${heroMovie.backdrop_url})`;
-            
-            // Limitar la longitud de la sinopsis
-            const shortSynopsis = heroMovie.sinopsis.length > 150 
-                ? heroMovie.sinopsis.substring(0, 150) + '...' 
-                : heroMovie.sinopsis;
-
+            const shortSynopsis = heroMovie.sinopsis.length > 150 ? heroMovie.sinopsis.substring(0, 150) + '...' : heroMovie.sinopsis;
             heroContainer.innerHTML = `
                 <div class="hero-content">
                     <h2 class="hero-title">${heroMovie.titulo}</h2>
@@ -375,54 +325,84 @@
 
         function displayMoviesByGenre() {
             moviesContainer.innerHTML = '';
-            
-            // Obtener todos los géneros únicos
             const genres = [...new Set(allMovies.flatMap(movie => movie.generos))];
             
             genres.forEach(genre => {
-                if (!genre) return; // Ignorar géneros vacíos
-
+                if (!genre) return;
                 const moviesInGenre = allMovies.filter(movie => movie.generos.includes(genre));
-                
                 const genreRow = document.createElement('div');
                 genreRow.className = 'genre-row';
                 
                 let movieCardsHTML = '';
-                moviesInGenre.forEach(movie => {
+                moviesInGenre.slice(0, 10).forEach(movie => {
                     movieCardsHTML += `
                         <div class="movie-card" onclick="location.href='sinopsis-pelicula.html?id=${movie.id}'">
                             <img src="${movie.poster_url}" alt="${movie.titulo}" loading="lazy" onerror="this.src='https://via.placeholder.com/150x225?text=No+IMG'"/>
-                            <div class="movie-card-info">
-                                <h3>${movie.titulo}</h3>
-                            </div>
                         </div>
                     `;
                 });
 
                 genreRow.innerHTML = `
-                    <h3 class="genre-title">${genre}</h3>
+                    <div class="genre-row-header">
+                        <h3 class="genre-title">${genre}</h3>
+                        <button class="view-all-btn" data-genre="${genre}">Ver todo &rarr;</button>
+                    </div>
                     <div class="movie-carousel">${movieCardsHTML}</div>
                 `;
                 moviesContainer.appendChild(genreRow);
             });
+
+            document.querySelectorAll('.view-all-btn').forEach(button => {
+                button.addEventListener('click', () => {
+                    const genre = button.dataset.genre;
+                    displayFullGenreGrid(genre);
+                });
+            });
+        }
+        
+        function displayFullGenreGrid(genre) {
+            heroContainer.style.display = 'none';
+            moviesContainer.innerHTML = '';
+            const moviesInGenre = allMovies.filter(movie => movie.generos.includes(genre));
+            
+            const gridHeader = `
+                <div class="genre-row-header">
+                    <h3 class="genre-title">${genre}</h3>
+                    <button id="back-to-rows-btn" class="view-all-btn">&larr; Volver</button>
+                </div>
+            `;
+            const gridContainer = document.createElement('div');
+            gridContainer.className = 'full-grid-view';
+
+            let movieCardsHTML = '';
+            moviesInGenre.forEach(movie => {
+                movieCardsHTML += `
+                    <div class="movie-card" onclick="location.href='sinopsis-pelicula.html?id=${movie.id}'">
+                        <img src="${movie.poster_url}" alt="${movie.titulo}" loading="lazy" onerror="this.src='https://via.placeholder.com/150x225?text=No+IMG'"/>
+                    </div>
+                `;
+            });
+
+            moviesContainer.innerHTML = gridHeader;
+            gridContainer.innerHTML = movieCardsHTML;
+            moviesContainer.appendChild(gridContainer);
+            
+            document.getElementById('back-to-rows-btn').addEventListener('click', () => {
+                heroContainer.style.display = 'flex';
+                displayMoviesByGenre();
+            });
         }
         
         function displaySearchResults(query) {
-             heroContainer.style.display = 'none'; // Ocultar el héroe durante la búsqueda
+             heroContainer.style.display = 'none';
              moviesContainer.innerHTML = '';
-
-             const filteredMovies = allMovies.filter(movie => 
-                movie.titulo.toLowerCase().includes(query)
-            );
-            
+             const filteredMovies = allMovies.filter(movie => movie.titulo.toLowerCase().includes(query));
             if (filteredMovies.length === 0) {
                 moviesContainer.innerHTML = '<p style="text-align:center;">No se encontraron resultados.</p>';
                 return;
             }
-
             const resultsGrid = document.createElement('div');
             resultsGrid.className = 'search-results-grid';
-
             let movieCardsHTML = '';
             filteredMovies.forEach(movie => {
                  movieCardsHTML += `
@@ -435,7 +415,6 @@
             moviesContainer.appendChild(resultsGrid);
         }
         
-        // --- Lógica de búsqueda ---
         searchInput.addEventListener('input', () => {
             const query = searchInput.value.toLowerCase().trim();
             if (query.length > 2) {
